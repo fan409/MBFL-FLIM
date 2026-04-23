@@ -17,11 +17,7 @@ Structure
 
 Usage
 
-Scripts in src/ can be run directly, for example:
-
-    python src/<script_name>.py
-
----
+Scripts in src/ can be run directly
 
 Notes
 
