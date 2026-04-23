@@ -1,0 +1,1343 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-68-1",
+  "is_fault_adjacent": false,
+  "is_flim": true,
+  "error": "Failed to parse JSON response",
+  "raw_response": "<think>\nOkay, so I'm trying to figure out how to approach this problem. The user provided a list of test cases where each test case has a status indicating whether it was broken by a mutant. My task is to determine for each mutant whether its adjacent mutants are likely to be faulty.\n\nFirst, I need to understand the data structure given. It looks like there's a dictionary where each key is a string representing a mutant ID, and the value is another dictionary containing \"test_cases\" which themselves have test cases as keys with boolean values indicating if they were broken.\n\nWait, no, looking again, actually the initial input is a JSON object where each key is a test case, and the value is a list of mutants that broke it. So for example, \"org.joda.time.DateTimeZone-68-1\" was broken by mutant 3245.\n\nBut I'm supposed to output for each mutant whether its adjacent mutants are faulty. That means for each mutant in the input, check if any of the mutants immediately before or after it (like +1 or -1 in their IDs) are also marked as breaking a test case.\n\nWait no, looking at the user's message again, I think I misunderstood. The output format requires me to return an array of JSON objects for each mutant, indicating whether its adjacent mutants are faulty.\n\nBut perhaps more accurately, since the input is a list of test cases and which mutants broke them, the goal is to find all the mutants that were involved in breaking these test cases and then determine if any of their neighboring mutant IDs (like +1 or -1) are also in this set. If yes, then \"is_fault_adjacent\" should be true.\n\nSo first step: collect all unique mutants from the input. Each test case has a list of mutants that broke it. So I need to iterate through each test_case and extract all mutant IDs involved.\n\nFor example, looking at the first entry:\n{\n  \"test_cases\": {\n    \"org.joda.time.DateTimeZone-68-1\": [3245],\n    ...\n  }\n}\nSo for this test case, mutant 3245 is involved. I need to collect all such mutants across all test cases.\n\nOnce I have the list of all mutants that caused failures, I can then look at each mutant and check if any of its adjacent numbers (like mutant ID ±1) are also in this set. If yes, then it's considered that the adjacent mutants are faulty.\n\nSo let me outline the steps:\n\n1. Extract all mutant IDs from the input.\n   - For each test case, extract the list of mutants.\n   - Flatten these lists to get a set of all unique mutants involved.\n\n2. For each mutant in this set:\n   a. Check if (mutant ID + 1) is also in the set.\n   b. Check if (mutant ID - 1) is also in the set.\n   c. If either exists, then is_fault_adjacent is True; else False.\n\n3. Create an array of JSON objects, each with \"mutant_id\" and \"is_fault_adjacent\".\n\nBut wait, looking at the sample output provided by the user, it's just a single object:\n\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-68-1\",\n    \"is_fault_adjacent\": bool (True or False)\n}\n\nWait no, that was an example of what not to do. The actual task is to output all mutants in the input with their adjacent status.\n\nBut perhaps I need to process each mutant ID provided in the input and determine for each whether any adjacent mutant IDs are also present in the same list.\n\nAlternatively, maybe the problem is more about static analysis: if a mutant's ID is such that its +1 or -1 is also a mutant ID that broke test cases, then it's considered to have an adjacent faulty mutant.\n\nSo let me think through with an example. Suppose mutants 3245 and 3246 both caused failures. Then for mutant 3245, since 3246 (which is +1) is also a mutant, \"is_fault_adjacent\" would be True. Similarly, 3246's adjacent mutant is 3245, so it would also have is_fault_adjacent as True.\n\nIf mutants are not consecutive, like 3245 and 3247 caused failures, then neither has an adjacent mutant in the set, so both would have False for is_fault_adjacent.\n\nSo, to implement this:\n\n- Collect all unique mutant IDs from the input.\n- For each mutant ID in this collection:\n   - Check if (mutant +1) exists in the collection.\n   - OR check if (mutant -1) exists in the collection.\n   - If either is true, set is_fault_adjacent to True; else False.\n\nNow, considering that the input's test_cases are structured as a dictionary where each key is a test case and its value is an array of mutants. So I need to iterate through all these arrays and collect all unique mutant IDs.\n\nOnce I have this list, process each as above.\n\nBut in terms of code, perhaps using Python:\n\n1. Extract all mutants:\n   mutants = set()\n   for test_case in input_dict['test_cases'].values():\n       mutants.update(test_case)\n\n2. For each m_id in mutants:\n   check if (m_id + 1) in mutants or (m_id -1) in mutants.\n\n3. Create a list of dictionaries with \"mutant_id\" as the string, and is_fault_adjacent accordingly.\n\nBut wait, looking at the sample output provided by the user, it's not clear whether they're asking for all such mutants or just one. However, based on their instruction, they want me to return only the response that can be parsed by JSON in the specified format, which includes an array of mutant objects.\n\nSo I think the correct approach is:\n\n- For each test case, extract all mutants involved.\n- Then, for each unique mutant ID across all test cases:\n   - Check if any adjacent (m_id ±1) are also in this set.\n   - If yes, then mark as True; else False.\n\nThen output an array of these objects.\n\nIn the example provided by the user, there's only one entry in the input: \"org.joda.time.DateTimeZone-68-1\" was broken by mutant 3245. So for mutant 3245:\n\nCheck if 3244 or 3246 are present in the mutants set.\n\nIf neither is present, then is_fault_adjacent is False.\n\nBut since there's only one mutant, it doesn't have any adjacent mutants in the set, so output would be an array with one object indicating is_fault_adjacent as False.\n\nWait no, because 3245 is the only mutant. So for m_id=3245, check if 3246 or 3244 exist in the set (which they don't), so is_fault_adjacent is False.\n\nThus, the output would be:\n\n[\n    {\n        \"mutant_id\": \"3245\",\n        \"is_fault_adjacent\": false\n    }\n]\n\nWait but looking back at the user's sample input, perhaps the mutant IDs are strings like 'src-main-java-org-joda-time-DateTimeZone-68-1' which includes a hyphen and numbers. So the actual mutant IDs might be in that format, not just numerical.\n\nThis complicates things because if the mutant ID is something like 'DateTimeZone-68-1', how do we handle adjacent mutants? Because these aren't numerical; perhaps the numbers within them could represent something else.\n\nWait no, I think the initial data structure shows that each test case's value is a list of integers representing mutant IDs. For example:\n\n{\n  \"test_cases\": {\n    \"org.joda.time.DateTimeZone-68-1\": [3245],\n    ...\n  }\n}\n\nSo in this case, 3245 is the ID. So mutants are numerical.\n\nTherefore, I can treat them as integers and check for adjacency based on their numeric values.\n\nThus, in code:\n\nmutant_ids = {3245, ...}\nfor m_id in mutant_ids:\n   if (m_id +1) in mutant_ids or (m_id -1) in mutant_ids:\n       is_fault_adjacent = True\n   else:\n       False\n\nBut I need to ensure that the output format includes \"mutant_id\" as a string. So for 3245, it would be \"3245\".\n\nNow, given this, let's process each mutant ID and generate the required JSON array.\n\nIn conclusion, the approach is:\n\n1. Extract all unique numerical mutant IDs from all test cases.\n2. For each mutant ID:\n   a. Check if any of its immediate neighbors (m_id ±1) are also in the set.\n   b. If yes, mark as True; else False.\n3. Output an array of objects with \"mutant_id\" and \"is_fault_adjacent\".\n</think>\n\n```json\n[\n    {\n        \"mutant_id\": \"3245\",\n        \"is_fault_adjacent\": false\n    }\n]\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 1930,
+    "total_tokens": 6026,
+    "prompt_eval_time_seconds": 1.0545,
+    "eval_time_seconds": 27.6477,
+    "total_time_seconds": 28.742,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 67.07
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_23_buggy/src/main/java/org/joda/time/DateTimeZone/68/1/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T08:47:23.751503",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForID_String_old": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToMutableDateTime_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_long_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestIslamicChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_Object1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateTime_TOD": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetHourOfDay_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToString_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_int_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestCopticChronology#testFactory": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundFloorHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_ObjectString4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestISOChronology#testFactory_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_nullObject_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetDayOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddWrapFieldWeekOfWeekyear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateMidnightProperty": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testGetValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGregorianChronology#testFactory": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Basics#testGet": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_Object_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Basics#testToDateTime_nullRI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddWrapFieldDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMilliOfSecond_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI_PeriodType4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatStyle#testForStyle_mediumShortDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestJulianChronology#testFactory": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_nullObject_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_badconverterObject": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding6": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_nullObject_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToCalendar_Locale": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testGetters": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundHalfCeilingHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testGet_DateTimeFieldType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Basics#testGetValue": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddDayOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_ordinalDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonth_Basics#testToInterval_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetTextDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetWeekOfWeekyear_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_Object": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMilliOfDay_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToDateTime_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding5": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTime_nullLocalTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetDayOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_timeParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicOrdinalDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_int_int_int_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Properties#testPropertyWithMaximumValueDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToInterval_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddLongDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Basics#testToDateTimeToday_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_nullObject_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_Object_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Basics#testToDateTimeToday": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateTimeAtMidnight_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToString_DTFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_Object_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseMutableDateTime_chrono": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTimeAtMidnight_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Basics#testToDateTime_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetSecondOfMinute_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Constructors#testConstructor_int_int_int_int_int_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedMutableDateTimeProperty": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI_PeriodType4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_long2_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetTextMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_int_int_int_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_nullObject": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_nullObject": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestIslamicChronology#testFactory": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Basics#testToDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Properties#testPropertyRoundFloorMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetHourOfDay_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMonthOfYear_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestCopticChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetWeekOfWeekyear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestEthiopicChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToDateTime_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_nullObject_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundHalfEvenHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddDayOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_time": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Basics#testGet": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetTextWeekOfWeekyear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter#testGetChronology_Object_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToInterval_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseMutableDateTime_zone3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicWeekDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testToGregorianCalendar": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateMidnight_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_ObjectString4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testGetMethods": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseDateTime_zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testGet_DateTimeFieldType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseInto_chrono": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestISOChronology#testFactory": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInstant_Basics#testGet_DateTimeField": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testDefault": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundHalfFloorHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_ObjectString2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_int_int_int_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseDateTime_zone2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology#testFactory_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_int_int_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGregorianChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundCeilingHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTimeAtStartOfDay_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testIsAfter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTimeAtStartOfDay_avoidDST": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToMutableDateTime_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMinuteOfDay_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testParse_formatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMilliOfSecond_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testToString_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Constructors#testConstructor_int_int_int_int_int_int_int_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_weekDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetTime_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testToDateTime_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTimeAtCurrentTime_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Basics#testToDateTime_nullRI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testFactory_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetWeekyear_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testGet_DateTimeField": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundFloorHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetSecondOfMinute_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToDateTimeISO": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDate_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_nullObject_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Basics#testToDateTime_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddWeekOfWeekyear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testEqualsHashCode": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddMonths_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testGetters": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseDateTime_chrono": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateMidnight": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestIslamicChronology#testFactory_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Constructors#testConstructor_nullObject": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_Object1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundHalfFloorHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_nullObject": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicTTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestJulianChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testToCalendar_Locale": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMinuteOfDay_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_Object_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testPrint_writerMethods": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatStyle#testForStyle_shortTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateMidnight": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToString_String_Locale": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Properties#testPropertyRoundCeilingMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyWithMinimumValueDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddWrapFieldDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetSecondOfDay_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testCompareTo": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatStyle#testForStyle_mediumTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDayOfMonth_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetZoneRetainFields_DateTimeZone1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatStyle#testForStyle_shortDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testGet_DateTimeFieldType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testPrint_bufferMethods": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetWeekOfWeekyear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToString_String_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Properties#testPropertyCompareToHour": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTimeAtMidnight": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddMinutes_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_dateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_badconverterObject_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_Object_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInstant_Basics#testToMutableDateTime_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedTimeOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Constructors#testConstructor_int_int_int_int_int_int_int_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestCopticChronology#testFactory_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_Object_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Basics#testToDateTimeTodayDefaultZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_nullObject_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestCopticChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseInto_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testGetValue": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetTextDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddLongDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDayOfWeek_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetYear_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testWithChronology_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetTextMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseDateTime_zone3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetTextYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDayOfMonth_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestJulianChronology#testFactory_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testToString_DTFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetZoneRetainFields_DateTimeZone3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Properties#testPropertyRoundHalfCeilingMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToMutableDateTime_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_int_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseInto_simple_precedence": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter#testGetDateTime2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter#testGetDateTime1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseInto_zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseMutableDateTime_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedYearMonthDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToGregorianCalendar": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddWrapFieldYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestISOChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTime_LocalTime_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testWithZoneRetainFields_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToString_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToCalendar_Locale": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Basics#testToDateTime_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseMutableDateTime_zone2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_int_int_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddWeekyears_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_nullObject": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDayOfWeek_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testWithChronology_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_weekDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testIsEqual": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateTimeAtCurrentTime_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateTimeAtMidnight": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedMutableDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_nullObject_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_ObjectString6": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Basics#testToDateTime_nullRI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_tTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetTime_Object3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetTextDayOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToString_DTFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGregorianChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestEthiopicChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundHalfCeilingHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMonthOfYear_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetTextDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testGet_DateTimeFieldType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddWrapFieldDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestEthiopicChronology#testFactory_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMinuteOfHour_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonth_Basics#testToInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedLocalDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Basics#testGetValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_long1_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testGetValue_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestJulianChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTimeAtStartOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateTime_TOD_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testWithZoneRetainFields_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_int_int_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateMidnight_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testGetPartialValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicWeekDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_long2_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMinuteOfHour_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateTime_nullTOD": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetTextDayOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicTTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Constructors#testConstructor_nullObject": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddSeconds_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicOrdinalDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testGetMillisKeepLocal": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDayOfYear_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Basics#testToDateTime_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseMutableDateTime_zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddMillis_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedLocalTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testToDateTimeAtCurrentTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestCopticChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestISOChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInstant_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseMutableDateTime_simple_precedence": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Basics#testToDateTime_nullRI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToDateTime_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDayOfYear_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestEthiopicChronology#testFactory": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Basics#testToDateTimeToday_nullZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatStyle#testForStyle_shortMediumDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_badconverterObject_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_Object_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testToDateTime_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseInto_zone3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundCeilingHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddHours_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_dateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetTextDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAdd_RP1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_nullObject": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddWrapFieldDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDate_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_nullObject_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testEqualsHashCode": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Properties#testPropertyRoundHalfFloorMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetZoneRetainFields_DateTimeZone4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatStyle#testForStyle_shortDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedLocalDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics#testGet": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseDateTime_simple_precedence": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetWeekOfWeekyear_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTime_LocalTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testPrint_appendableMethods": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testGetValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateMidnight": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testWithZone_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestISOChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddYears_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDateTimeAtCurrentTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_nullObject_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_Object_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_nullObject_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseDateTime_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGregorianChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMilliOfDay_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_Object1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestEthiopicChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestIslamicChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology#testFactory": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testToString_String_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_int_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_timeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter#testGetChronology_Object_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestJulianChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Constructors#testConstructor_nullObject_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Properties#testPropertyWithMinimumValueDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddWrapFieldWeekOfWeekyear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatStyle#testForStyle_mediumDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Properties#testPropertyRoundHalfEvenMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_int_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_long_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddWrapFieldMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Constructors#testConstructor_nullObject_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testGet_DateTimeField": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddWeekOfWeekyear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetSecondOfDay_int2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_long_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testFactory": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testWithMillis_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddWrapFieldDayOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors#testConstructor_long1_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddWrapFieldDayOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToGregorianCalendar": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_ordinalDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_Object_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddWeeks_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertySetDayOfWeek": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeProperty": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_tTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundHalfEvenHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Constructors#testConstructor_int_int_int_int_int_int_int_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestIslamicChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyAddWrapFieldYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testConstructor_int_int_int_int_int_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetTextYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddDays_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertySetTextWeekOfWeekyear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_ObjectString2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToMutableDateTime_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGregorianChronology#testFactory_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyWithMaximumValueDayOfMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyAddWrapFieldMonthOfYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 4,
+  "time_cost": {
+    "total_time_seconds": 28.78,
+    "preprocessing_time_seconds": 0.0021,
+    "llm_query_time_seconds": 28.7779,
+    "start_timestamp": 1770914814.9715014,
+    "end_timestamp": 1770914843.751501
+  }
+}

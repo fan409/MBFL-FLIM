@@ -1,0 +1,259 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-378-2",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out whether the mutant with ID 378-2 in DateTimeZone.java is a fault-prone adjacent line. Let me start by understanding what's going on here.\n\nLooking at the code change provided, it seems that line 378 was originally:\n\nreturn getMillisKeepLocal(1970, 1, 1, 0, 0, 0) - getMillisKeepLocal(1969, 12, 31, 23, 59, 59);\n\nAnd the mutant changed it to:\n\nreturn getMillisKeepLocal(1970, 1, 1, 0, 0, 0) + getMillisKeepLocal(1969, 12, 31, 23, 59, 59);\n\nSo the original line was subtracting two values, and the mutant is adding them instead. \n\nI need to determine if this change could be causing a bug or not. Let's think about what getMillisKeepLocal does. From the context, it likely returns the number of milliseconds since epoch (like January 1, 1970) for a given date and time, considering local time zone adjustments.\n\nSo, in the original code, they're calculating the difference between two points: midnight on January 1, 1970, and just before that on December 31, 1969. The expected result would be the number of milliseconds in a day, which is 86400000.\n\nIf we subtract, it's correct because (jan1 - dec31) gives exactly one day in milliseconds. But if we add them instead, what happens? Well, both getMillisKeepLocal calls are for specific times. Let me think about their values.\n\nAssuming that the method returns the number of milliseconds since epoch correctly adjusted for the time zone:\n\n- For January 1, 1970, at 00:00:00, it's a known point and should return the same as the Unix epoch in milliseconds for that time.\n- December 31, 1969, 23:59:59 is just one second before January 1, 1970.\n\nSo, if we calculate getMillisKeepLocal(1970, 1, 1, 0, 0, 0), that's probably 86400 * 1000 = 86400000 ms for a day since epoch. Wait no, actually, the Unix epoch is Jan 1, 1970, so it would return 0.\n\nWait, no: getMillisKeepLocal(1970, 1, 1, 0, 0, 0) should be 0 because that's the start of the epoch. Then, getMillisKeepLocal(1969, 12, 31, 23, 59, 59) would be -86399999 milliseconds since it's just before the epoch.\n\nSo when subtracting these, original line is 0 - (-86399999) = 86400000 ms, which is correct (one day in milliseconds). \n\nIf we add them instead, 0 + (-86399999) equals -86399999 ms. That's a negative value, which might not make sense in the context where this method is used.\n\nThe original code likely calculates the total number of milliseconds in a day, and using subtraction makes sense here because it's (end - start). Changing that to addition would invert the meaning, leading to an incorrect result. \n\nSo, the mutant changed a subtraction into an addition, which could lead to negative values or wrong positive values depending on how getMillisKeepLocal behaves. This is likely introducing a bug.\n\nTherefore, I conclude that this mutant is a fault-prone adjacent line because changing subtraction to addition alters the expected result significantly.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-378-2\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 912,
+    "total_tokens": 5008,
+    "prompt_eval_time_seconds": 1.0483,
+    "eval_time_seconds": 13.0984,
+    "total_time_seconds": 14.2089,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 64.07
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/378/2/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T17:53:10.267123",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long_DateTimeZone_2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long1_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long2_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetZoneRetainFields_DateTimeZone3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Properties#testPropertyCompareToHour": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_LocalDate_new_Gaza": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDate_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetTime_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long2_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetZoneRetainFields_DateTimeZone4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testWithZoneRetainFields_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_withZoneRetainFields_Gaza": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long4_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Properties#testPropertyCompareToSecond": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testGetValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalTime_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics#testToLocalDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long2_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Properties#testPropertyCompareToMinute": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_MutableDateTime_setZoneRetainFields_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long1_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetDate_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long3_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testGetValue_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_nullDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_LocalDate_new_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics#testWithZoneRetainFields_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long1_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long2_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long1_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_MutableDateTime_withZoneRetainFields_Gaza": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetZoneRetainFields_DateTimeZone1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_withZoneRetainFields_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testGet_DateTimeFieldType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Properties#testPropertyCompareToMilli": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long_DateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testGetMillisKeepLocal": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testConstructor_long2_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testConstructor_long1_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetTime_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDateTime_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 2,
+  "time_cost": {
+    "total_time_seconds": 14.2366,
+    "preprocessing_time_seconds": 0.0014,
+    "llm_query_time_seconds": 14.2352,
+    "start_timestamp": 1770947576.030517,
+    "end_timestamp": 1770947590.2671206
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-91-2",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I need to figure out whether the mutant code change made by the user is adjacent to a fault. Let's start by understanding what's going on here.\n\nFirst, looking at the original and mutant code changes:\n\nThe original code in lines 88-94 was:\n```java\n    public static DateTimeZone forOffsetHoursMinutes(int hoursOffset, int minutesOffset) throws IllegalArgumentException {\n        if (hoursOffset == 0 && minutesOffset == 0) {\n            return DateTimeZone.UTC;\n        }\n        if (minutesOffset < 0 || minutesOffset > 59) {\n            throw new IllegalArgumentException(\"Minutes out of range: \" + minutesOffset);\n        }\n        int offset = 0;\n        try {\n```\n\nThe mutant code changes line 91, modifying the condition for `minutesOffset`:\n```java\n- if (minutesOffset < -1 || minutesOffset > 59) {\n+ if (minutesOffset < 0 || minutesOffset > 59) {\n```\n\nWait, no—actually, looking at the user's diff:\n\nThe lines show that line 91 is changed from `if (minutesOffset < -1 || ...)` to `if (minutesOffset < 0 || ...)`. Wait, let me check again.\n\nIn the 'Mutant Code Changes' section:\n- Line 91 was modified. The original line had `minutesOffset < -1`, and now it's `minutesOffset < 0`.\n\nWait no: looking at the diff:\n\nThe user shows that line 91 is changed from:\n`if ( minutesOffset < -1 || minutesOffset > 59 ) {`\nto\n`if ( minutesOffset < 0 || minutesOffset > 59 ) {`\n\nSo, the mutant change is that the lower bound for `minutesOffset` was modified. Now it's checking if `minutesOffset < 0` instead of `< -1`.\n\nWait, but in the original code, line 91 was: \nif ( minutesOffset < -1 || minutesOffset >59 )\n\nAnd now it's changed to:\nif ( minutesOffset < 0 || ... )\n\nSo this is a change from checking if `minutesOffset` is less than -1 to being less than 0.\n\nNow, I need to see what effect this has on the code and whether any tests are failing or passing because of this mutation.\n\nLooking at the 'Mutant Failing Tests Information' section:\n\n- Test `TestMonthDay_Properties#testPropertyGetMonthOfYear` was fixed by the mutation (status change from failing to passing).\n- Several other tests in `TestDateTimeZoneCutover` remained failing.\n- The test `TestDateTimeZone#testForOffsetHoursMinutes_int_int` started failing because of this mutation.\n\nSo, how does changing the condition on line 91 affect these tests?\n\nLet's think about what forOffsetHoursMinutes is supposed to do. It creates a DateTimeZone with given hours and minutes offsets. If both are zero, it returns UTC. Otherwise, it checks that minutes are between -59 and 59 (since in original code, the condition was < -1, meaning that if minutesOffset is negative but >=-59, perhaps? Wait no: the original condition was `minutesOffset < -1 || ...` which would include any negative value less than -1. But with the change, it's now checking for `minutesOffset < 0`, so any negative minute offset is invalid.\n\nWait, that can't be right because minutes should range from -59 to +59. So allowing minutesOffset between -59 and 59 inclusive makes sense. \n\nIn the original code, the condition was `if (minutesOffset < -1 || ... )`, which would throw an exception if minutesOffset is less than -1 or greater than 59. But in reality, minutes can be from -59 to +59.\n\nWait no: for example, a time zone offset could be like \"-04:30\" (New York in winter), so minutesOffset should allow negative values down to -59 and positive up to 59.\n\nSo the original condition `if (minutesOffset < -1 || ... )` was incorrect because it allowed any minutesOffset >=-1, but if someone passes minutesOffset=-60, that's invalid. But perhaps the original code intended to allow all values except those outside of -59 to +59. So maybe the correct condition should be `if (minutesOffset < -59 || minutesOffset > 59)`.\n\nBut in this case, the mutant changed line 91 from checking `< -1` to `<0`. That's a bigger change. Now it only checks if minutes are negative at all, which would invalidate any negative offset.\n\nWait no: the condition after mutation is `minutesOffset <0 || >59`, so for example:\n\n- If minutesOffset = -30 → less than 0 → exception thrown.\n- If minutesOffset=60 → greater than 59 → exception.\nBut that's not correct, because negative offsets are valid. For example, a time zone like UTC-04:30 should have hoursOffset=-4 and minutesOffset=-30.\n\nSo the mutant change is wrong because it now invalidates any negative minute offset, which is incorrect. This explains why some tests started failing, such as TestDateTimeZone#testForOffsetHoursMinutes_int_int.\n\nTherefore, this mutation introduced a bug where passing a negative minute offset would cause an exception to be thrown incorrectly.\n\nNow, looking at the 'is_fault_adjacent' part: we need to determine if this mutation is adjacent (close) to a fault. Since the mutant caused some tests to fail and others to pass, but mainly introduced a new issue by making it impossible to have negative minute offsets, which are valid.\n\nSo, the change is in line 91 of DateTimeZone.java, and it's causing a bug because it restricts minutesOffset from being negative at all. The original code only restricted when minutes were less than -1 or greater than 59. So this mutation is introducing a new fault by changing the condition.\n\nTherefore, the mutant is adjacent to a fault because it caused incorrect behavior in some cases (like valid negative offsets) and also affected existing tests.\n</think>\n\nThe mutant changes the validation of `minutesOffset` in the `forOffsetHoursMinutes` method, incorrectly disallowing any negative values. This causes issues when valid negative offsets are used.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-91-2\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 1387,
+    "total_tokens": 5483,
+    "prompt_eval_time_seconds": 1.0395,
+    "eval_time_seconds": 19.8841,
+    "total_time_seconds": 20.9847,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 66.05
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/91/2/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T13:51:33.581349",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZone#testForOffsetHoursMinutes_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 5,
+  "time_cost": {
+    "total_time_seconds": 21.0014,
+    "preprocessing_time_seconds": 0.0011,
+    "llm_query_time_seconds": 21.0002,
+    "start_timestamp": 1770933072.5799792,
+    "end_timestamp": 1770933093.5813475
+  }
+}

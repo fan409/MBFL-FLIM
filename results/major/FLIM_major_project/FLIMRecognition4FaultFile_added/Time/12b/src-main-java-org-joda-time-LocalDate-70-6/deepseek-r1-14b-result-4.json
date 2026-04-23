@@ -1,0 +1,74 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-LocalDate-70-6",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out whether the mutant code change in LocalDate.java at line 70 is adjacent to a fault. The mutant changes line 70 from:\n\ndate.getYear() + 1900\n\nto\n\ndate.getYear() / 1900\n\nAnd also modifies other lines, but I think the main focus is on this line.\n\nFrom the problem description, there are several failing tests after the mutation. Specifically, some tests that were previously passing started to fail because of this change. For example, TestLocalDate_Constructors#testFactory_fromDateFields_before1970 and others are now failing. This suggests that changing the year calculation is causing issues with dates before 1970.\n\nWait, let me think about what this line does. The original code adds 1900 to date.getYear(). That makes sense if date.getYear() returns a value like years since 1900. For example, if it's 2023, adding 1900 would give 2123, which is the actual year.\n\nBut when we change it to division by 1900, that would be date.getYear() divided by 1900. So for a value like 12345 (if getYear returns something larger), dividing by 1900 would give 6 or 7, which doesn't make sense as a year.\n\nWait no, maybe I'm misunderstanding the context. The code is part of a constructor that takes a Date object, perhaps from java.util.Date. Java's Date represents milliseconds since epoch (usually January 1, 1970). So date.getYear() would return the year in this era, like years since 1900. For example, for dates before 1970, it could be negative or a lower number.\n\nSo if we have a Date object representing a year of, say, 50 (which is 1950), adding 1900 gives the correct 1950. But dividing by 1900 would give 0 for any date before 1970 because 50 / 1900 is 0.26, which truncates to 0.\n\nWait no, in Java, Date's getYear() returns the year as an int, where 1970 is 0, 1980 is 10, etc. Or wait, actually, I'm a bit confused about how Date.getYear() works. Oh right, Date.getYear() returns the year minus 1900. So for example, January 1, 1970 is year 0, 2023 would be 123.\n\nSo in the original code, adding 1900 to date.getYear() gives the correct actual year. If we change it to division by 1900, that's a problem because for any getYear() less than 1900 (which is negative if before 1970), dividing would give incorrect results.\n\nWait no, wait: Date.getYear() returns an int which is the year minus 1900. So if the actual date is in 2000, getYear() returns 100. Adding 1900 gives 2000, correct.\n\nBut dividing by 1900 would give 0 for any getYear() less than 1900 (which corresponds to dates before 1970). So for a date in 1969, getYear() is -1. Dividing -1 by 1900 gives 0 in integer division because Java truncates towards zero.\n\nWait no, wait: Let's compute:\n\n- If getYear() is 50 (which would correspond to 1950), then date.getYear() + 1900 = 1950. But dividing by 1900 gives 50 / 1900 = 0.\n\nWait, that's not correct because 50 is much less than 1900. So this would result in 0 for any getYear() between 0 and 1899. Which is wrong because those correspond to years from 1900 onwards.\n\nBut wait, no: Date.getYear() returns the year minus 1900. So if it's 2023, getYear() is 123 (since 2023-1900=123). Adding 1900 gives 2023, correct.\n\nIf we divide by 1900, 123 / 1900 is 0. So the year would be set to 0, which is 1970, which is wrong.\n\nWait no, wait: The code in question is inside a constructor that creates a new LocalDate with:\n\nnew LocalDate(date.getYear() + 1900, date.getMonth() + 1, date.getDate())\n\nSo the mutant changes this line to:\n\nnew LocalDate(date.getYear() / 1900, ... )\n\nWait, that's not right. Because for years beyond 1970, getYear() is positive, so dividing by 1900 would be way too small.\n\nFor example, if date.getYear() is 123 (year 2023), 123 / 1900 = 0. So the year becomes 0, which is 1970, but that's not correct.\n\nBut wait, in Java, dividing an int by another int results in integer division. So for any date after 1970, this change would set the year to zero or a small number, leading to incorrect dates.\n\nFor dates before 1970, getYear() is negative. For example, 1969 would be -1, so -1 / 1900 is 0 in integer division (since Java truncates towards zero). So for pre-1970 dates, the year becomes 0, which is still incorrect.\n\nThis explains why the tests are failing. The mutation changes the way years are calculated, leading to incorrect values for both past and future dates relative to 1970.\n\nThe problem is that this line is crucial for correctly parsing the Date object into a LocalDate. Changing '+' to '/' breaks the year calculation entirely, causing all sorts of test failures related to date conversion, especially around the 1970 boundary and before/after that.\n\nTherefore, the mutant code change at line 70 is indeed adjacent to a fault because it introduces a critical bug in the year calculation.\n</think>\n\nThe mutation changes the way years are calculated from a Date object to LocalDate. Instead of adding 1900 to get the correct year, it divides by 1900, leading to incorrect year values for dates before and after 1970. This directly causes several tests to fail as they expect accurate date conversions.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-LocalDate-70-6\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 1538,
+    "total_tokens": 5634,
+    "prompt_eval_time_seconds": 1.0484,
+    "eval_time_seconds": 21.9733,
+    "total_time_seconds": 23.0808,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 66.57
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_12_buggy/src/main/java/org/joda/time/LocalDate/70/6/LocalDate.java",
+  "analysis_timestamp": "2026-02-12T08:27:26.503413",
+  "test_changes": {
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromDateFields_beforeYearZero1": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromDateFields_beforeYearZero3": {
+      "status_change": "failing->failing (error message changed only)",
+      "error_diff": "--- original\n+++ mutant\n@@ -1 +1 @@\n-junit.framework.AssertionFailedError: expected:<-0002-02-03> but was:<0003-02-03>\n+junit.framework.AssertionFailedError: expected:<-0002-02-03> but was:<0000-02-03>"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testFactory_fromCalendarFields_beforeYearZero3": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testFactory_fromDateFields_beforeYearZero3": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromCalendarFields_beforeYearZero3": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testFactory_fromCalendarFields_beforeYearZero1": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testFactory_fromDateFields_beforeYearZero1": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromCalendarFields_beforeYearZero1": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromDateFields_before1970": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDate_springDST": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDate_springDST_2Hour40Savings": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromDateFields_after1970": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDate_summer": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDate_autumnDST": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics#testToDate_winter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 4,
+  "time_cost": {
+    "total_time_seconds": 23.1034,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 23.1023,
+    "start_timestamp": 1770913623.4000096,
+    "end_timestamp": 1770913646.5034115
+  }
+}

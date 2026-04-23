@@ -1,0 +1,46 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-MutableDateTime-154-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out why the mutation caused some tests to pass and others to fail. Let's break it down step by step.\n\nFirst, looking at the mutant code changes: The original line 154 in MutableDateTime.java was:\n\nsetMillis ( getChronology().weeks().add ( getMillis(), weeks ) );\n\nAnd after the mutation, a semicolon was added, making it:\n\nsetMillis ( getChronology().weeks().add ( getMillis(), weeks ) ); }\n\nWait, no, looking again. The mutation shows line 154 as being changed from having just the method call to adding a semicolon and closing brace? Or maybe I'm misreading.\n\nActually, according to the provided code changes:\n\n- Original line 154: setMillis ( getChronology().weeks().add ( getMillis(), weeks ) );\n- After mutation, it became: setMillis ( ... ); }\n\nWait no, looking at the exact change:\n\nIt's shown as:\n- 153 | + 153 |     public void addWeeks ( final int weeks ) {\n- 154 |       |         setMillis ( getChronology().weeks().add ( getMillis(), weeks ) ); }\n      | + 154 |         ; }\n\nHmm, maybe the original code had no semicolon or extra line. Alternatively, perhaps the mutation added a semicolon at the end of the method.\n\nWait, in the mutant changes, it shows that line 154 was modified to add a semicolon after the setMillis call. So:\n\nOriginal line 154: setMillis(...); \n\nAfter mutation, maybe there's an extra semicolon or perhaps a misplaced brace? Or maybe it's just adding a semicolon at the end of the method.\n\nWait no, looking more carefully: The original code on lines 153-157 is:\n\npublic void addWeeks ( final int weeks ) {\n    setMillis ( getChronology().weeks().add ( getMillis(), weeks ) );\n}\npublic void setDayOfYear ( ... ) { ... }\n\nAfter mutation, line 154 in the mutant code has an extra semicolon and a closing brace. Wait, perhaps the method was modified to have an empty statement after the semicolon.\n\nAlternatively, maybe the mutation added a semicolon at the end of the addWeeks method's setMillis call. But that shouldn't change anything because the line already ended with a semicolon. Maybe I'm misunderstanding the diff notation here.\n\nWait, perhaps in the mutant code, the addWeeks method was modified to have an extra semicolon after the setMillis line. For example:\n\nOriginal:\npublic void addWeeks ( final int weeks ) {\n    setMillis ( getChronology().weeks().add ( getMillis(), weeks ) );\n}\n\nMutant:\npublic void addWeeks ( final int weeks ) {\n    setMillis ( getChronology().weeks().add ( getMillis(), weeks ) ); }\n}\n\nNo, that doesn't make sense. Alternatively, maybe the mutation added a semicolon after the method call inside addWeeks.\n\nWait, perhaps it's more about adding an extra statement or modifying the line in some other way. Maybe I'm missing something here.\n\nLooking at the failing tests: The status changes indicate that testAddWeeks_int_dstOverlapWinter_addZero was fixed (went from failing to passing), but testAddDays and others remained failing, while testAddWeeks_int1 started failing after mutation.\n\nSo, when the addWeeks method is modified, it affects some of these tests. Let me think about what these tests are doing.\n\nThe tests with 'dstOverlapWinter_addZero' probably involve daylight saving time transitions in winter, which can cause issues with adding durations because the clock might be moving back or forward, affecting the total milliseconds correctly.\n\nIn addWeeks method: The original code sets the millis by adding weeks using getChronology().weeks().add(...). If the mutation adds an extra semicolon or modifies this line, perhaps it's causing a problem in how the addition is handled, especially around DST changes.\n\nIf the testAddWeeks_int_dstOverlapWinter_addZero was fixed, that suggests that the mutation corrected some issue with adding weeks across DST transitions. However, other tests like testAddDays are still failing, meaning their issues weren't addressed by this mutation.\n\nNow, considering whether this mutant is adjacent to a fault: A fault-adjacent mutant would be one where the change is very close to a part of the code that's known to have bugs or is complex. If the addWeeks method was recently modified or is near other methods that handle similar logic (like addDays, addMonths), then this mutation could be adjacent to a fault.\n\nLooking at the surrounding lines in MutableDateTime.java:\n\n- Lines 151-157 are about setting and adding different time units: week of weekyear, weeks, dayOfYear, dayOfMonth. So these methods are all related to adjusting the date by various fields.\n\nIf the addWeeks method is part of a group that handles similar operations, any change in one could affect others, especially around DST transitions where overlapping days can cause issues.\n\nTherefore, since the mutation changed the addWeeks method and some tests started passing while others failed, it suggests that this mutant is indeed adjacent to a fault because it's modifying code in a section where other related functions are handling similar date/time additions which might have their own bugs or edge cases.\n</think>\n\nThe mutant modifies the `addWeeks` method. Since this method is part of a group handling similar date adjustments, the mutation may be near other potential faults.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-MutableDateTime-154-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 1203,
+    "total_tokens": 5299,
+    "prompt_eval_time_seconds": 1.034,
+    "eval_time_seconds": 17.2082,
+    "total_time_seconds": 18.3035,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 65.67
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_3_buggy/src/main/java/org/joda/time/MutableDateTime/154/1/MutableDateTime.java",
+  "analysis_timestamp": "2026-02-12T08:03:26.506699",
+  "test_changes": {
+    "org.joda.time.TestMutableDateTime_Adds#testAddWeeks_int_dstOverlapWinter_addZero": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddDays_int_dstOverlapWinter_addZero": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAdd_DurationFieldType_int_dstOverlapWinter_addZero": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddMonths_int_dstOverlapWinter_addZero": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddYears_int_dstOverlapWinter_addZero": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds#testAddWeeks_int1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 2,
+  "time_cost": {
+    "total_time_seconds": 18.3204,
+    "preprocessing_time_seconds": 0.0009,
+    "llm_query_time_seconds": 18.3195,
+    "start_timestamp": 1770912188.18633,
+    "end_timestamp": 1770912206.5066967
+  }
+}

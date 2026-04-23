@@ -1,0 +1,139 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-136-1",
+  "is_fault_adjacent": false,
+  "is_flim": true,
+  "error": "Failed to parse JSON response",
+  "raw_response": "<think>\nOkay, so I need to figure out whether the mutant code change introduced by the mutation at line 136 in DateTimeZone.java is adjacent to a fault. The mutant code adds a semicolon after line 136, which was previously without one.\n\nFirst, let me look at the original and mutated code sections. In the original, lines 135-139 are:\n\n135: if (iFixedOffsetCache == null) {\n136:     iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n}\n137: DateTimeZone zone;\n138: Reference<DateTimeZone> ref = iFixedOffsetCache.get(id);\n139: if (ref != null) {\n\nIn the mutated version, line 136 is changed to add a semicolon after the statement. So it becomes:\n\n135: if (iFixedOffsetCache == null) {\n136:     iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n137: DateTimeZone zone;\n138: Reference<DateTimeZone> ref = iFixedOffsetCache.get(id);\n139: if (ref != null) {\n\nWait, no—the user's diff shows that line 136 is changed from having a single closing brace to adding a semicolon. Let me check the exact change:\n\nThe original code at lines 135-136 was:\n\nif (iFixedOffsetCache == null) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n}\n\nIn the mutant, line 136 is changed to add a semicolon inside the if block. So it becomes:\n\nif (iFixedOffsetCache == null) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n\nWait no, looking at the diff provided in the user's message, the mutant change is adding a semicolon on line 136.\n\nActually, according to the \"Mutant Code Changes\" section:\n\n- Line 135: same\n- Line 136: added a semicolon after iFixedOffsetCache initialization. So the original was:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n\nAnd the mutant is:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n\nWait no—the user's diff shows that line 136 has an added semicolon and a closing brace? Or perhaps I'm misreading.\n\nLooking back at the \"Mutant Code Changes\" section:\n\n@@ -135,7 +135,7 @@\n- 135 | if ( iFixedOffsetCache == null ) {\n- 136 |     iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n      | ; }\n\nWait no, the diff shows that line 136 is changed to add a semicolon. So in the original, lines 135 and 136 were:\n\nif (iFixedOffsetCache == null) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n}\n\nIn the mutant, after this change, it's:\n\nif (iFixedOffsetCache == null) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n\nWait no—the actual change in the user message is that line 136 is modified. Looking again:\n\nMutant Code Changes:\n@@ -133,7 +133,7 @@\n- 133 | + 133 |         if ( offset == 0 ) {\n- 134 | + 134 |             return DateTimeZone.UTC; }\n- 135 | + 135 |         if ( iFixedOffsetCache == null ) {\n- 136 |       |             iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n      | + 136 |             ; }\n\nWait no—the user's diff shows that line 136 is being modified to add a semicolon after the assignment. So the original was:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n\nAnd in the mutant, it becomes:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n\nWait no—the user's diff shows that line 136 is having a semicolon added after the assignment. So in the original code, lines 135-136 were:\n\nif (iFixedOffsetCache == null) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n}\n\nIn the mutant, it's changed to add a semicolon at line 136, making that line end with a semicolon and then an extra closing brace? Or perhaps I'm misinterpreting. Alternatively, maybe it's inserting a semicolon after the assignment inside the if block.\n\nWait no—the exact change is:\n\nThe original line 135: \"if ( iFixedOffsetCache == null ) {\"\n\nLine 136: \"iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\"\n\nNo—because in the user's message, under \"Mutant Code Changes\", it shows that at line 136, there is a change. So the original was:\n\nLine 135: if ( iFixedOffsetCache == null ) {\n\nLine 136:     iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n\nAnd in the mutant, line 136 is changed to add a semicolon after that assignment.\n\nWait, looking again at the user's message:\n\nThe diff shows:\n\n- Line 135: same\n- Line 136: original had only the assignment without a semicolon. The mutant adds a semicolon.\n\nSo in the mutant code, line 136 is now \"iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\"\n\nWait no—the user's diff shows that at lines 135-136:\n\nOriginal:\nif ( iFixedOffsetCache == null ) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n\nMutant:\nif (iFixedOffsetCache == null) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n\nSo the only change is adding a semicolon at the end of line 136.\n\nNow, why would this cause issues? Well, in Java, each statement must end with a semicolon. The assignment statement already ends with one, so adding another semicolon is incorrect syntax and would result in a compilation error.\n\nBut according to the \"Mutant Failing Tests Information\", when this change was made, some tests started failing because of a NullPointerException in DateTimeZone.fixedOffsetZone(). \n\nLooking at the test failures:\n\nFor example, TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone failed. The error message changed from a ComparisonFailure to a NullPointerException, and the stack trace points to lines where fixedOffsetZone is called.\n\nSo when the mutant was introduced, line 136 had an extra semicolon, which would cause a syntax error during compilation. However, in the context of mutation analysis, perhaps it's not being compiled but instead causing runtime issues elsewhere.\n\nAlternatively, perhaps I'm misunderstanding—maybe the added semicolon caused a change in control flow or variable scoping. But adding a semicolon after an assignment is incorrect and should result in a syntax error, which would prevent successful compilation. Therefore, any tests that were previously passing might now fail due to compilation errors, but in this case, some tests are failing with NullPointerExceptions during runtime.\n\nWait, perhaps the added semicolon caused the code to exit early or skip certain lines. Alternatively, maybe it's an issue where the cache isn't properly initialized, leading to null references later on.\n\nLooking at the affected test cases:\n\n- The testWithMinuteOfHourInDstChange_mockZone is now failing with a NullPointerException in DateTimeZone.fixedOffsetZone(). This suggests that somewhere in this method, a reference is being accessed that's null. Perhaps because the iFixedOffsetCache wasn't properly initialized due to the mutant change.\n\nWait, but if line 136 was changed to add an extra semicolon, making it:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n\nThis would actually cause a syntax error because you can't have two closing braces. Or wait, perhaps I'm misreading the diff.\n\nWait no—the user's diff shows that line 136 is modified to add a semicolon after the assignment but doesn't show any change in the braces. So the correct code after mutation would be:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); \n\nWhich ends with a semicolon, which is valid.\n\nWait no—the original line 136 was inside an if block and didn't have a semicolon? No, that's not possible. Java requires semicolons after statements.\n\nSo perhaps the mutation added another semicolon, making it:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); \n\nBut wait, the original line already had a semicolon at the end of the assignment. So adding another one would be invalid. For example:\n\nOriginal: iFixedOffsetCache = new HashMap<>(); (correct)\nMutant: iFixedOffsetCache = new HashMap<>(); ; (incorrect, as it has two semicolons)\n\nWait no—the user's diff shows that line 136 in the original code is missing a semicolon? That can't be because Java requires it.\n\nHmm, perhaps I'm misunderstanding. Let me look at the exact lines again:\n\nIn the \"Mutant Code Changes\" section, it says:\n\nLine 135: if (iFixedOffsetCache == null) {\n\nLine 136 in original: iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n\nIn mutant code, line 136 becomes: iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n\nWait no—the user's diff shows that the change is at line 136. So perhaps the original line was:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n\nAnd the mutant adds a semicolon and a closing brace? Or perhaps it's adding a semicolon after the assignment.\n\nAlternatively, maybe in the original code, line 136 didn't have a semicolon, but that would be invalid Java. So perhaps I'm misinterpreting.\n\nWait no—the user's diff shows:\n\n- 135 | if ( iFixedOffsetCache == null ) {\n- 136 |     iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n      | + 136 |             ; }\n\nNo—this seems to suggest that line 136 is modified. The original line had the assignment without a semicolon, and then the mutant adds it.\n\nWait no, perhaps I'm overcomplicating this. Let's think about what happens when we add an extra semicolon after the assignment in Java. It's syntactically incorrect because you can't have two statements on the same line without separation. So adding an extra semicolon would cause a compilation error. But according to the test failures, some tests are failing with NullPointerExceptions rather than compilation errors, which suggests that perhaps I'm misunderstanding how the mutation was applied.\n\nAlternatively, maybe the mutation didn't add a semicolon but instead caused the code to exit early or skip lines due to incorrect syntax, leading to uninitialized variables and thus null references.\n\nWait, perhaps in this case, the added semicolon causes the line to end prematurely. For example:\n\nOriginal line: iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n\nMutant line: iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); }\n\nBut that would be two statements on the same line, which isn't allowed unless separated by a semicolon.\n\nWait no—if you have:\n\niFixedOffsetCache = new HashMap<>(); \n\nThat's correct. But adding another semicolon:\n\niFixedOffsetCache = new HashMap<>(); ;\n\nWhich is technically allowed but unnecessary and perhaps causes confusion in code analysis tools.\n\nAlternatively, maybe the mutation added an extra line with a semicolon after line 136, which would be a no-op statement. For example:\n\nif (iFixedOffsetCache == null) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n}\n;\n\nBut that's just adding an empty statement, which doesn't affect the logic.\n\nWait, but according to the user's \"Mutant Code Changes\" section, line 136 is modified by adding a semicolon after the assignment. So it would be:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); \n\nWhich is fine because Java allows empty statements with just a semicolon.\n\nBut why would that cause test failures? Let me think about the code flow.\n\nThe iFixedOffsetCache is a cache used to store references to DateTimeZone instances. If this cache isn't properly initialized, perhaps subsequent lookups return null, leading to NullPointerExceptions when trying to dereference 'ref' in line 138.\n\nBut adding an extra semicolon after the assignment shouldn't affect the logic because it's just an empty statement. Unless there's a mistake elsewhere, like maybe an early exit or some other control flow issue caused by this change.\n\nAlternatively, perhaps the added semicolon is causing the code to have an unintended effect in terms of variable scoping or due to some parsing error that leads to 'iFixedOffsetCache' not being properly initialized.\n\nWait another angle: when the cache isn't properly initialized, any subsequent calls to get() on it would return null. So if this mutant causes the cache initialization to be skipped or improperly done, then 'ref' could be null, leading to a NullPointerException when trying to use it.\n\nBut why would adding an extra semicolon cause that? Because adding a semicolon after the assignment is just an empty statement and shouldn't affect whether the cache is initialized.\n\nWait perhaps I'm missing something. Let me think about how Java parses statements. Each statement must end with a semicolon. So in this case, if line 136 was changed from:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n\nTo:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); \n\nWhich is the same as before but with an extra semicolon—so that's fine.\n\nWait no—if you have two statements on the same line without a semicolon between them. Wait no—it's just one statement ending with a semicolon, then another empty statement.\n\nNo—the code would look like:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); \n\nWhich is correct because it's followed by another semicolon for an empty statement, but that doesn't make sense in the context of Java syntax. Wait no—no, you can have multiple statements on a single line separated by semicolons.\n\nWait no, I'm getting confused now. Let me clarify:\n\nEach statement must end with a semicolon. So if line 136 is changed to:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); \n\nThat's one statement (the assignment) followed by an empty statement (;), which is valid but unnecessary.\n\nSo why would that cause the cache to not be initialized? It shouldn't—it's just two statements on the same line.\n\nAlternatively, perhaps I'm misunderstanding how the mutation was applied. Maybe the line 136 in the mutant code has a semicolon added after the assignment, making it:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); \n\nWhich is correct, but then what's the problem? The test failure suggests that 'ref' becomes null.\n\nWait another angle: perhaps the cache isn't properly initialized because of an error elsewhere. But in this case, adding a semicolon shouldn't affect whether the cache is created or not.\n\nAlternatively, maybe the added semicolon causes some other part of the code to behave incorrectly. For example, if there's a missing closing brace or some other syntax issue that wasn't caught.\n\nWait looking back at the test failure:\n\nTestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone failed with NPE in fixedOffsetZone(). \n\nLooking into that method, perhaps 'iFixedOffsetCache' is null because it wasn't initialized. But wait—if the cache was properly created in line 136, then why would it be null?\n\nWait no—the if statement checks if iFixedOffsetCache is null and initializes it if so. So even with the mutant change, as long as that code runs, the cache should be initialized.\n\nUnless adding the extra semicolon caused an issue where the initialization wasn't done correctly.\n\nAlternatively, perhaps in the mutant code, line 136 ends up being:\n\niFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>(); \n\nWhich is correct. Then why would 'ref' be null?\n\nWait maybe because the cache isn't used properly elsewhere or there's a race condition I'm not seeing.\n\nAlternatively, perhaps the problem is that in some cases, the iFixedOffsetCache remains null because of incorrect initialization due to the mutant change.\n\nBut no—the code inside the if block initializes it when it's null. So regardless of the semicolon addition, the cache should be initialized.\n\nWait unless adding the semicolon caused a compilation error elsewhere or caused the method to exit early due to some syntax issue, but that doesn't seem likely.\n\nAlternatively, perhaps I'm missing something about how the code is structured. Maybe line 136 was modified in such a way that it breaks the flow of the program, leading to uninitialized variables.\n\nWait another thought: maybe the extra semicolon causes an empty statement, which could have unintended side effects if it's placed inside a control structure incorrectly. But in this case, the code is within an if block and shouldn't be affected by that.\n\nAlternatively, perhaps the added semicolon leads to a different behavior when using certain Java versions or IDEs, but that seems unlikely.\n\nWait, perhaps I should think about the broader context of what the iFixedOffsetCache does. It's used for caching DateTimeZone instances based on their IDs. If this cache isn't properly initialized, then when trying to retrieve a zone ID from it (line 138), 'ref' could be null, leading to an NPE when trying to use it.\n\nBut why would the cache not be initialized? The code inside the if block should create it when null.\n\nUnless in the mutant version, for some reason, the initialization isn't happening correctly. Maybe due to a missing semicolon elsewhere causing the method to exit early.\n\nWait no—the only change is adding an extra semicolon on line 136. So unless that somehow breaks the code's structure, which I don't see how it would.\n\nAlternatively, perhaps this mutation is part of a multi-line change that affects the surrounding lines, but according to the user's message, it's only line 136 that's being changed.\n\nHmm, maybe the problem isn't in the cache initialization but elsewhere. For example, if the method returns early before initializing the cache, or if there's an exception thrown during cache creation.\n\nBut without seeing the full code context, it's hard to say for sure. However, based on the test failures and the stack trace pointing to fixedOffsetZone(), which uses iFixedOffsetCache, I suspect that after this mutation, 'ref' is null because the cache wasn't properly initialized.\n\nWait no—the if block initializes the cache when it's null. So unless the code somehow",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 4096,
+    "total_tokens": 8192,
+    "prompt_eval_time_seconds": 1.0493,
+    "eval_time_seconds": 58.5358,
+    "total_time_seconds": 59.6438,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 68.64
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/136/1/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T14:37:06.808845",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (error message and stack trace changed)",
+      "error_diff": "--- original\n+++ mutant\n@@ -1 +1 @@\n-junit.framework.ComparisonFailure: expected:<...10-31T01:30:00.000+0[1:0]0> but was:<...10-31T01:30:00.000+0[0:3]0>\n+java.lang.NullPointerException",
+      "stack_diff": "--- original\n+++ mutant\n@@ -1,7 +1,7 @@\n-at junit.framework.Assert.assertEquals(Assert.java:100)\n-at junit.framework.Assert.assertEquals(Assert.java:107)\n-at junit.framework.TestCase.assertEquals(TestCase.java:269)\n-at org.joda.time.TestDateTimeZoneCutover.testWithMinuteOfHourInDstChange_mockZone(TestDateTimeZoneCutover.java:685)\n+at org.joda.time.DateTimeZone.fixedOffsetZone(DateTimeZone.java:138)\n+at org.joda.time.DateTimeZone.forOffsetMillis(DateTimeZone.java:106)\n+at org.joda.time.DateTimeZone.forOffsetHoursMinutes(DateTimeZone.java:103)\n+at org.joda.time.TestDateTimeZoneCutover.testWithMinuteOfHourInDstChange_mockZone(TestDateTimeZoneCutover.java:677)\n at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZone#testForOffsetHours_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseDateTime_offsetParsed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testTimeZoneConversion": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2005": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseMutableDateTime_offsetParsed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2004": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testGetOffsetFixed_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2006": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testTransitionFixed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForTimeZone_TimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#testNearDstTransition": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testGetOffsetFixed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalTime_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestISOChronology#testDurationFields": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForOffsetMillis_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testEqualsHashCode": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForOffsetHoursMinutes_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForID_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseInto_offsetParsed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2003": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDateTime_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 4,
+  "time_cost": {
+    "total_time_seconds": 59.6736,
+    "preprocessing_time_seconds": 0.0013,
+    "llm_query_time_seconds": 59.6723,
+    "start_timestamp": 1770935767.1352086,
+    "end_timestamp": 1770935826.8088436
+  }
+}

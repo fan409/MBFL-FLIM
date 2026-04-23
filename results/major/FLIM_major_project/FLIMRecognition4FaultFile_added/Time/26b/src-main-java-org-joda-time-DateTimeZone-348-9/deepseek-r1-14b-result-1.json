@@ -1,0 +1,55 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-348-9",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nAlright, I'm trying to figure out why the mutant code change might be causing some tests to fail. Let's look at the problem step by step.\n\nFirst, the original code in `DateTimeZone.java` around lines 348-9 is:\n\n```java\nif ( ( instantUTC ^ instantLocal ) < 0 && ( instantUTC ^ offset ) >= 0 ) {\n    throw new ArithmeticException ( \"Adding time zone offset caused overflow\" );\n}\n```\n\nThe mutant changed this to:\n\n```java\nif ( ( instantUTC ^ instantLocal ) < 0 && ( instantUTC | offset ) >= 0 ) {\n    throw new ArithmeticException ( \"Adding time zone offset caused overflow\" );\n}\n```\n\nSo the only change is replacing `^` with `|` in the second condition.\n\nNow, looking at the failing tests. The test `TestMonthDay_Properties#testPropertyGetMonthOfYear` was fixed by the mutation, meaning that after the change, this test started passing instead of failing. However, all other tests related to `DateTimeZoneCutover` are still failing or unchanged in their status.\n\nI need to understand what this condition is checking and why changing it would affect these tests.\n\nThe original condition checks if `(instantUTC ^ instantLocal) < 0`, which indicates that the XOR of the two values is negative. The second part, `.instantUTC ^ offset >= 0`, uses XOR again. Replacing XOR with OR might change how overflow is detected.\n\nIn Java, XOR (^) and OR (|) have different behaviors. The original condition likely checks for specific overflow scenarios using bitwise operations. Changing it to use OR could alter the logic, potentially missing some cases or including others.\n\nThe test `TestMonthDay_Properties` probably passes because the change in this part of the code doesn't directly affect how month names are handled, but rather affects time zone conversions. However, other tests like those in `DateTimeZoneCutover` rely on correct offset calculations and overflow detection, which might now fail due to incorrect conditions.\n\nSo, considering whether this mutant is adjacent to a fault: since changing the condition altered some test outcomes (fixed one test, others unchanged), it suggests that the mutation is indeed affecting the logic related to arithmetic exceptions during time zone conversions. This implies that the mutant is likely introducing a fault in the overflow detection mechanism.\n</think>\n\nThe mutant code change modifies the overflow check in `DateTimeZone.convertUTCToLocal()`, which affects how offset addition is validated. The test `TestMonthDay_Properties#testPropertyGetMonthOfYear` passed after the mutation, but other time zone tests failed or remained unchanged, indicating a possible fault adjacency.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-348-9\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 592,
+    "total_tokens": 4688,
+    "prompt_eval_time_seconds": 1.0367,
+    "eval_time_seconds": 8.5318,
+    "total_time_seconds": 9.6272,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 61.37
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/348/9/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T17:01:28.702625",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    }
+  },
+  "attempt_number": 1,
+  "time_cost": {
+    "total_time_seconds": 9.6477,
+    "preprocessing_time_seconds": 0.0009,
+    "llm_query_time_seconds": 9.6468,
+    "start_timestamp": 1770944479.0548763,
+    "end_timestamp": 1770944488.7026236
+  }
+}

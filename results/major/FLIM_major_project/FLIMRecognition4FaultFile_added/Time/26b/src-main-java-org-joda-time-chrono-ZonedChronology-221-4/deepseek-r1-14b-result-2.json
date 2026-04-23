@@ -1,0 +1,127 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-chrono-ZonedChronology-221-4",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, I'm trying to figure out whether the mutant code change is adjacent to a fault. So, first, let me understand what's going on here.\n\nFrom the problem statement, there's a mutant code change in the file ZonedChronology.java at lines 218-224. The mutant changed line 221 from returning `localInstant - offset` to `localInstant / offset`. So, the original code had:\n\nif (iTimeField) {\n    int offset = getOffsetToAdd(instant);\n    long localInstant = iField.add(instant + offset, value);\n    return localInstant - offset;\n} else {\n    long localInstant = iZone.convertUTCToLocal(instant);\n    localInstant = iField.add(localInstant, value);\n    return localInstant;\n}\n\nAnd the mutant changed it to:\n\nif (iTimeField) {\n    int offset = getOffsetToAdd(instant);\n    long localInstant = iField.add(instant + offset, value);\n    return localInstant / offset; // Changed line\n} else {\n    ... same as before ...\n}\n\nNow, I need to see if this mutant is adjacent to any faults. The output should be a JSON object indicating the mutant_id and whether it's fault-adjacent.\n\nLooking at the failing tests information:\n\nOne test that was fixed was `TestMonthDay_Properties#testPropertyGetMonthOfYear`. But other tests like several in TestDateTimeZoneCutover started failing or remained unchanged.\n\nThe key here is to see if this mutant affects any of these tests. The issue might be related to how offsets are handled when adding fields. For example, returning `localInstant / offset` instead of subtracting could cause incorrect calculations, especially when dealing with time zones and daylight saving changes.\n\nIn the provided test failures, some tests like TestDateTimeZoneCutover#testBug2182444_ausNSW and others remained failing, indicating that this mutant might not be directly causing those issues but perhaps affecting other parts. However, one test was fixed by the mutation, which suggests that maybe the change addressed a problem in that specific area.\n\nI'm trying to determine if the mutant is near any code that's causing faults. The line where it changed (line 221) might be part of a block handling time fields and offsets. If this line is faulty, nearby lines could also have issues.\n\nBut considering the structure, I don't see any other code in that vicinity except for the if-else blocks. So, the mutant is directly on line 221, which was modified, but whether it's adjacent to a fault depends on how the surrounding code behaves.\n\nWait, \"fault-adjacent\" probably refers to whether this mutant is near a part of the code where a bug exists or has been fixed. Since this change affected some tests and didn't fix others, maybe there are related issues nearby.\n\nBut without more context, it's hard to say for sure. However, since the mutant was made in line 221, which is the same as the line number mentioned in the output format example (mutant_id: src-main-java-org-joda-time-chrono-ZonedChronology-221-4), I think that line might be where the problem lies.\n\nGiven that, and considering that some tests were broken by this change, it's likely that this mutant is adjacent to a fault because modifying this line introduced new issues or didn't fully address existing ones.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-ZonedChronology-221-4\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 763,
+    "total_tokens": 4859,
+    "prompt_eval_time_seconds": 1.0418,
+    "eval_time_seconds": 11.0125,
+    "total_time_seconds": 12.1169,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 62.85
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/chrono/ZonedChronology/221/4/ZonedChronology.java",
+  "analysis_timestamp": "2026-02-12T20:33:06.348419",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyToIntervalMillisOfSecond": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyToIntervalMinuteOfHour": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyToIntervalMinuteOfHour": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Constructors#testConstructor_RP_RI7": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyToIntervalHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedISOChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGregorianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedYearMonthDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyToIntervalMillisOfSecond": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedJulianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Constructors#testConstructor_RI_RP7": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZoneUTC": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Constructors#testConstructor_RP_RI7": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronologyChangedInternals": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyToIntervalSecondOfMinute": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedTimeOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyToIntervalHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Constructors#testConstructor_RI_RP7": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyToIntervalSecondOfMinute": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 2,
+  "time_cost": {
+    "total_time_seconds": 12.142,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 12.1408,
+    "start_timestamp": 1770957174.2064652,
+    "end_timestamp": 1770957186.3484163
+  }
+}

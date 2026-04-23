@@ -1,0 +1,67 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-359-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, I'm trying to figure out whether the mutant code change with ID 359 is adjacent in terms of fault. Let's look at what changed.\n\nIn the original code, line 360 and beyond had some logic involving nextTransition. The mutant modified lines 359-362:\n\nOriginal:\nlong nextAdjusted = nextTransition(instantLocal - offset);\nif (nextAdjusted == (instantLocal - offset)) {\n    nextAdjusted = Long.MAX_VALUE;\n}\n\nMutant changed it to:\nlong nextAdjusted = nextTransition(instantLocal % offset);\nand added a check for nextLocal != nextAdjusted.\n\nWait, in the mutant, they used instantLocal modulo offset instead of subtracting. So line 359 now uses (instantLocal % offset) as the argument to nextTransition.\n\nNow, looking at the failing tests information, some tests started failing or were fixed. The test \"TestMonthDay_Properties#testPropertyGetMonthOfYear\" was fixed, but others like those in TestDateTimeZoneCutover remained failing.\n\nThe key is whether this change affects the calculation of transitions. Since nextTransition might rely on instantLocal - offset correctly, using modulo could cause issues if it wraps around or changes the value unexpectedly.\n\nI think that because the mutant changed the argument to nextTransition from (instantLocal - offset) to (instantLocal % offset), which is a different computation, this could introduce errors in how transitions are calculated. Especially since mod can give negative results depending on values, but Java's mod behaves differently with negatives.\n\nTherefore, the change might be introducing bugs that cause some tests to fail because the transition calculations are incorrect. So, this mutant is likely adjacent to a fault because it altered the logic in a way that could lead to unexpected behavior.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-359-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 407,
+    "total_tokens": 4503,
+    "prompt_eval_time_seconds": 1.0382,
+    "eval_time_seconds": 5.9732,
+    "total_time_seconds": 7.069,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 57.41
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/359/1/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T17:26:10.571590",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_setHourAcross_NewYork_Spring": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_lenientChrononolgy_Chicago": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_lenientChrononolgy_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_JustAfterLastEverOverlap": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 5,
+  "time_cost": {
+    "total_time_seconds": 7.0899,
+    "preprocessing_time_seconds": 0.0011,
+    "llm_query_time_seconds": 7.0888,
+    "start_timestamp": 1770945963.4816623,
+    "end_timestamp": 1770945970.571588
+  }
+}

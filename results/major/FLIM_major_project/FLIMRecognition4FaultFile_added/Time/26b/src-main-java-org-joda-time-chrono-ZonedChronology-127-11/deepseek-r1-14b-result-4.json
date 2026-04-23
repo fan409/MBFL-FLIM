@@ -1,0 +1,91 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-chrono-ZonedChronology-127-11",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out whether the mutant code change is adjacent to a fault. Let's break it down step by step.\n\nFirst, looking at the problem description, there are some test cases that failed after the mutation. The main change in the mutant code seems to be in the `hashCode()` method of the ZonedChronology class. Originally, the method was returning 326565 + getZone().hashCode() * 11 + getBase().hashCode() * 7. But the mutant changed it by replacing the plus sign with a minus for the getZone().hashCode() part.\n\nSo, the original line was:\nreturn 326565 + getZone().hashCode() * 11 + getBase().hashCode() * 7;\n\nThe mutant version is:\nreturn 326565 - getZone().hashCode() * 11 + getBase().hashCode() * 7;\n\nThis change could potentially affect the hash code calculation, which might cause issues in hash-based collections or when using equals and hashCode contracts.\n\nLooking at the failing tests information, several tests related to serialization started failing after this mutation. Specifically, tests like `TestSerialization#testSerializedISOChronology` and others went from passing to failing. This suggests that the change in the hashCode() method might have caused objects that should be equal (based on their fields) to now have different hash codes, breaking the contract between equals and hashCode.\n\nAdditionally, one test `org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear` went from failing to passing. This might mean that this particular test was fixed by the mutation, perhaps because the previous implementation had an issue with how it handled certain properties or string representations.\n\nNow, considering whether this change is adjacent to a fault: The mutant changed the sign of one part in the hash code calculation. Since the equals method checks both getZone() and getBase(), changing the contribution of getZone() in hashCode could lead to two equal objects having different hash codes, which violates the contract. This would cause issues when using these objects in HashMaps or other collections that rely on hashCode for equality.\n\nFurthermore, the fact that multiple serialization tests failed indicates that the way objects are being serialized and deserialized relies on correct hash code implementations. If the hash code changes but the object's state (as per equals) remains the same, it can lead to inconsistencies during deserialization or when comparing instances.\n\nSo, putting this together: The mutant change is in the hashCode() method of ZonedChronology, altering how the hash code is computed. This likely introduced a bug because it broke the contract between equals and hashCode. Therefore, the mutant code's change is directly adjacent to a fault—specifically, it caused several tests related to serialization and possibly other areas that depend on correct hashing to fail.\n\nHence, I would conclude that this mutant change is adjacent to a fault.\n</think>\n\nThe mutant changes the `hashCode()` method in ZonedChronology by altering the sign of one term. This can break the equals-hashCode contract, causing several serialization tests to fail, indicating a fault adjacency.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-ZonedChronology-127-11\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 687,
+    "total_tokens": 4783,
+    "prompt_eval_time_seconds": 1.036,
+    "eval_time_seconds": 9.8393,
+    "total_time_seconds": 10.9333,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 62.71
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/chrono/ZonedChronology/127/11/ZonedChronology.java",
+  "analysis_timestamp": "2026-02-12T19:13:12.749820",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestSerialization#testSerializedISOChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGregorianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZoneUTC": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedTimeOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedYearMonthDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronologyChangedInternals": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedJulianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 4,
+  "time_cost": {
+    "total_time_seconds": 10.9553,
+    "preprocessing_time_seconds": 0.0009,
+    "llm_query_time_seconds": 10.9543,
+    "start_timestamp": 1770952381.794567,
+    "end_timestamp": 1770952392.7498174
+  }
+}

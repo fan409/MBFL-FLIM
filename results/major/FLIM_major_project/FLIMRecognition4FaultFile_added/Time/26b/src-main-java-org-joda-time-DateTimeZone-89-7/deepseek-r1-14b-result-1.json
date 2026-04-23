@@ -1,0 +1,55 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-89-7",
+  "is_fault_adjacent": false,
+  "is_flim": true,
+  "raw_response": "<think>\nOkay, so I need to figure out whether the mutant code change made by replacing line 89 affects any adjacent lines. The mutant was a change in lines 86 to 92 of the DateTimeZone.java file.\n\nLooking at the original code:\n\nLines 86-92 were:\n```java\npublic static DateTimeZone forOffsetHours ( int hoursOffset ) throws IllegalArgumentException {\n    return forOffsetHoursMinutes ( hoursOffset, 0 );\n}\npublic static DateTimeZone forOffsetHoursMinutes ( int hoursOffset, int minutesOffset ) throws IllegalArgumentException {\n    if ( hoursOffset == 0 && minutesOffset == 0 ) {\n        return DateTimeZone.UTC; }\n    if ( minutesOffset < 0 || minutesOffset > 59 ) {\n        throw new IllegalArgumentException ( \"Minutes out of range: \" + minutesOffset );\n    }\n}\n```\n\nThe mutant changed line 89 from checking `if ( hoursOffset == 0 && minutesOffset == 0 )` to `if ( hoursOffset == 0 && minutesOffset == -1 )`. So now, the code is:\n\n```java\npublic static DateTimeZone forOffsetHours ( int hoursOffset ) throws IllegalArgumentException {\n    return forOffsetHoursMinutes ( hoursOffset, 0 ); }\npublic static DateTimeZone forOffsetHoursMinutes ( int hoursOffset, int minutesOffset ) throws IllegalArgumentException {\n    if ( hoursOffset == 0 && minutesOffset == -1 ) {\n        return DateTimeZone.UTC; }\n    if ( minutesOffset < 0 || minutesOffset > 59 ) {\n        throw new IllegalArgumentException ( \"Minutes out of range: \" + minutesOffset );\n    }\n}\n```\n\nNow, I need to check if this change affects lines adjacent to line 89. The adjacent lines would be line 88 and line 90.\n\nLine 88 is the method signature for `forOffsetHoursMinutes`, which hasn't changed except for possible formatting. Line 90 checks if minutesOffset is out of range, which is still valid because it's looking at negative or above 59.\n\nSo, after the change, does line 89 interact with lines 88 or 90? Let me see:\n\n- The condition on line 89 now looks for `minutesOffset == -1`. This would return UTC if both hours are zero and minutes are -1. But wait, in the method parameters, minutesOffset is an int passed from `forOffsetHours`, which passes 0 as the second argument. So when someone calls `forOffsetHours(0)`, it goes to `forOffsetHoursMinutes(0, 0)`.\n\nIn that case, line 89's condition (hours=0 and minutes=-1) would not be triggered because minutes is 0. So in this scenario, the code doesn't return UTC but proceeds to check if minutes are out of range on line 90. Since 0 is within the range, it continues without throwing an exception.\n\nWait a minute—that might cause issues. For example, when someone calls `forOffsetHours(0)`, which would call `forOffsetHoursMinutes(0, 0)`. The original code returned UTC for (0,0), but now with the mutant, it doesn't because line 89 is checking for -1. So in this case, line 90 checks if minutes are <0 or >59. Since 0 is not, so it proceeds without throwing an exception and returns a DateTimeZone of 0 hours and 0 minutes offset. But originally, (0,0) returned UTC.\n\nSo the mutant might have broken the handling of the (0,0) case because line 89 no longer handles that condition—it's now looking for (0,-1). Therefore, when (0,0) is passed, it doesn't return UTC and instead creates a DateTimeZone with offset 0 hours, which is technically correct but may have been intended to be UTC.\n\nBut in terms of code structure, the change only modifies line 89. The lines before and after it are line 88 (method signature), line 89 (if condition), and line 90 (another if). So the change affects line 89 but doesn't directly impact lines adjacent to it in terms of control flow or variable usage.\n\nTherefore, the mutant doesn't cause any issues with adjacent lines. It's only changing the logic within line 89 itself.\n</think>\n\nThe mutant changes line 89 without affecting its adjacent lines' structure or functionality.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-89-7\",\n    \"is_fault_adjacent\": false\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 972,
+    "total_tokens": 5068,
+    "prompt_eval_time_seconds": 1.041,
+    "eval_time_seconds": 13.9305,
+    "total_time_seconds": 15.0337,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 64.57
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/89/7/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T13:42:04.714919",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    }
+  },
+  "attempt_number": 1,
+  "time_cost": {
+    "total_time_seconds": 15.0553,
+    "preprocessing_time_seconds": 0.001,
+    "llm_query_time_seconds": 15.0543,
+    "start_timestamp": 1770932509.6596186,
+    "end_timestamp": 1770932524.7149172
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-chrono-ZonedChronology-294-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out whether the mutant code change in ZonedChronology.java is causing adjacent faults. Let's break this down step by step.\n\nFirst, looking at the mutant code changes provided:\n\nThe original lines 291-294 were:\n```\n291 |             else {\n292 |                 long localInstant = iZone.convertUTCToLocal ( instant );\n293 |                 localInstant = iField.roundCeiling ( localInstant );\n294 |                 return iZone.convertLocalToUTC ( localInstant, false ); }\n```\n\nThe mutant changed line 294 to:\n```\nreturn iZone.convertLocalToUTC ( localInstant, true ); }\n```\n\nSo the change is in the boolean parameter passed to `convertLocalToUTC`. The original used `false`, and the mutant uses `true`.\n\nNext, I need to understand what this method does. Looking up the Joda-Time documentation or code, `iZone.convertLocalToUTC(long localInstant, boolean toRound)` converts a local instant to UTC. The boolean parameter likely determines whether to round the result.\n\nIn ZonedChronology, when dealing with date-time fields, rounding can affect how the time is adjusted, especially around Daylight Saving Time transitions.\n\nNow, looking at the failing tests after mutation:\n\n- `TestMonthDay_Properties#testPropertyGetMonthOfYear` went from failing to passing. That's probably unrelated because it's about month names and not directly related to timezone conversions.\n  \n- Several `TestDateTimeZoneCutover` tests continued to fail, indicating that the change in the boolean parameter might affect how times are rounded during DST transitions.\n\nBut the main focus is on whether this mutation causes adjacent faults. Adjacent faults mean that a single fault introduces another nearby fault, often due to code that's too similar or related.\n\nIn this case, changing `false` to `true` affects how local instants are converted back to UTC after rounding. This could potentially cause issues in multiple test cases because many tests rely on correct timezone conversions.\n\nLooking at the failing tests in `TestSerialization`, all of them started failing, which suggests that the mutation broke the serialization process. This might be because the way dates/times are being rounded or converted affects their serialized form, leading to mismatches when deserialized.\n\nSo, does changing this boolean cause adjacent faults? Yes, because it's a single change that impacts multiple tests related to timezone conversions and serialization. The same mutant is causing several test failures across different areas, indicating adjacent issues.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-ZonedChronology-294-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 571,
+    "total_tokens": 4667,
+    "prompt_eval_time_seconds": 1.0401,
+    "eval_time_seconds": 8.2183,
+    "total_time_seconds": 9.3199,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 61.12
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/chrono/ZonedChronology/294/1/ZonedChronology.java",
+  "analysis_timestamp": "2026-02-12T21:16:57.871026",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestSerialization#testSerializedISOChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGregorianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZoneUTC": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedTimeOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedYearMonthDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronologyChangedInternals": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_Gaza": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedJulianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 2,
+  "time_cost": {
+    "total_time_seconds": 9.3428,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 9.3416,
+    "start_timestamp": 1770959808.5282288,
+    "end_timestamp": 1770959817.871024
+  }
+}

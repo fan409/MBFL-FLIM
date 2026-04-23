@@ -1,0 +1,52 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-LocalDateTime-161-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, I need to figure out whether the mutant code change at line 161 of LocalDateTime.java is adjacent to a fault. The problem involves some failing tests in Joda-Time related to date and time parsing before the year zero.\n\nLooking at the Mutant Code Changes section:\n\nThe original lines around 158-162 were:\n158: if (partial instanceof LocalDateTime) {\n159:     LocalDateTime other = (LocalDateTime) partial;\n160:     if (iChronology.equals(other.iChronology)) {\n161:         return iLocalMillis == other.iLocalMillis; }\n162: return super.equals(partial);\n}\n\nAfter the mutation, lines 160-161 were changed to:\nif (iChronology.equals(other.iChronology)) {\n    return iLocalMillis <= other.iLocalMillis; }\n\nWait, no. Let me check again.\n\nLooking at the provided changes:\n\nLine 158 is modified to add a line? Or perhaps the formatting got messed up. Oh, I see that in the mutant code, lines 160 and 161 are changed. The original had line 161 as return iLocalMillis == other.iLocalMillis; but it's replaced with <=.\n\nSo the mutant changes the equality check to a less than or equal check.\n\nThe failing tests information shows that for LocalDateTime tests, some were fixed (status change from failing to passing), while for LocalDate tests, they remained failing. The tests that passed are related to beforeYearZero3 and beforeYearZero1 in both date and datetime constructors.\n\nSo the mutant affects how equality is checked between two LocalDateTime objects when their chronology is the same. By changing the comparison from == to <=, it's likely affecting ordering or equivalence.\n\nThe question is whether this mutation introduced a new fault adjacent to line 161.\n\nLooking at the stack traces for the failing tests in LocalDate Constructors, all of them have issues with dates like -0002-02-03 being incorrectly mapped. For example:\n\nExpected: -0002-02-03 but got 0003-02-03.\n\nThis suggests that there's an issue with how negative years are handled when creating LocalDate objects from certain fields, perhaps in the constructors that take calendar or date parts.\n\nBut wait, the mutant was made in LocalDateTime.java. How does this affect LocalDate tests? Are there any dependencies between these classes?\n\nLocalDate and LocalDateTime might share some parsing logic or rely on each other's methods. For example, if a constructor in LocalDate uses code from LocalDateTime, changes there could cause issues elsewhere.\n\nSo, the mutation changed the equals method for LocalDateTime to use <= instead of == when comparing iLocalMillis. This change might have fixed some tests where dates were being compared correctly but broke others because it introduced incorrect ordering logic.\n\nBut in this case, the failing LocalDate tests weren't fixed by the mutation; their status remained unchanged. So perhaps the equals method in LocalDateTime doesn't directly affect how LocalDate constructs its objects. Alternatively, maybe the code change inadvertently caused issues elsewhere.\n\nAlternatively, perhaps the code relies on certain behaviors that were previously correct with == but now are incorrect with <=, leading to edge cases where dates around year zero aren't handled properly.\n\nThe key is whether line 161 in LocalDateTime.java is adjacent to any faulty lines. From the context, it's part of the equals method, which compares iLocalMillis for equality. Changing this comparison could affect how dates are considered equal or ordered, potentially causing issues when constructing LocalDate objects from certain fields, especially around year zero.\n\nSince some tests passed and others failed, but specifically the ones in LocalDate constructors remained failing, it suggests that while the LocalDateTime-related tests were fixed, the changes introduced a new issue elsewhere. Therefore, this mutation might have introduced a fault adjacent to line 161, affecting other parts of the system.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-LocalDateTime-161-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 852,
+    "total_tokens": 4948,
+    "prompt_eval_time_seconds": 1.0402,
+    "eval_time_seconds": 12.3006,
+    "total_time_seconds": 13.4044,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 63.46
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_12_buggy/src/main/java/org/joda/time/LocalDateTime/161/1/LocalDateTime.java",
+  "analysis_timestamp": "2026-02-12T08:28:31.071088",
+  "test_changes": {
+    "org.joda.time.TestLocalDateTime_Constructors#testFactory_fromCalendarFields_beforeYearZero3": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testFactory_fromDateFields_beforeYearZero1": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testFactory_fromCalendarFields_beforeYearZero1": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors#testFactory_fromDateFields_beforeYearZero3": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromCalendarFields_beforeYearZero1": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromDateFields_beforeYearZero3": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromDateFields_beforeYearZero1": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestLocalDate_Constructors#testFactory_fromCalendarFields_beforeYearZero3": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    }
+  },
+  "attempt_number": 1,
+  "time_cost": {
+    "total_time_seconds": 13.4278,
+    "preprocessing_time_seconds": 0.001,
+    "llm_query_time_seconds": 13.4267,
+    "start_timestamp": 1770913697.6433308,
+    "end_timestamp": 1770913711.0710862
+  }
+}

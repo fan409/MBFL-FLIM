@@ -1,0 +1,67 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-356-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, I'm trying to figure out whether the mutant code change at line 356 in DateTimeZone affects adjacent lines. Let me look at the context.\n\nThe original line was:\nlong nextLocal = nextTransition(instantLocal - offsetLocal);\n\nThe mutant changed it to:\nlong nextLocal = nextTransition(instantLocal % offsetLocal);\n\nHmm, so they replaced 'offsetLocal' with 'instantLocal % offsetLocal'. I wonder why that would cause issues. \n\nLooking at the test failures, several tests related to DateTimeZoneCutover and LenientChronology started failing after this change. For example, TestDateTimeZoneCutover#testWithHourOfDayInDstChange failed because of an incorrect offset.\n\nAlso, in TestMonthDay_Properties, a test was fixed by mutation, which might mean the mutant corrected that issue elsewhere but caused others.\n\nI should check if line 356's change affects nearby lines. The next line is checking if nextLocal equals (instantLocal - offsetLocal). If the new calculation makes this condition false, it could cause incorrect behavior downstream.\n\nThe mutant changed how 'nextLocal' is calculated. Using modulo here might not be appropriate because 'offsetLocal' can be negative, and modding by a negative number in Java returns a negative result, which could mess up time calculations.\n\nTherefore, the change on line 356 likely affects the logic around it, especially the condition that follows. This would mean the mutant is adjacent to the affected code, so 'is_fault_adjacent' should be True.\n</think>\n\nThe mutation at line 356 modifies how `nextLocal` is calculated by replacing `offsetLocal` with `instantLocal % offsetLocal`. This change affects the subsequent logic in lines 357-358, where the condition checks if `nextLocal` equals a previous value. Since this modification can lead to incorrect values being used downstream, it's considered adjacent to the affected code.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-356-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 442,
+    "total_tokens": 4538,
+    "prompt_eval_time_seconds": 1.0387,
+    "eval_time_seconds": 6.4113,
+    "total_time_seconds": 7.5129,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 58.68
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/356/1/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T17:17:28.687220",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_setHourAcross_NewYork_Spring": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_lenientChrononolgy_Chicago": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_lenientChrononolgy_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_JustAfterLastEverOverlap": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 1,
+  "time_cost": {
+    "total_time_seconds": 7.5334,
+    "preprocessing_time_seconds": 0.0011,
+    "llm_query_time_seconds": 7.5323,
+    "start_timestamp": 1770945441.153807,
+    "end_timestamp": 1770945448.6872187
+  }
+}

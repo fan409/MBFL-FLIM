@@ -1,0 +1,64 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-395-3",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nAlright, so I'm trying to figure out this problem where a mutation in the code caused some tests to fail and others to pass. Let me start by understanding what's going on here.\n\nFirst, looking at the mutant code changes provided, it seems like there was an alteration made to the `hashCode()` method of the `DateTimeZone` class. The original line 395 was:\n\n```java\nreturn 57 + getID().hashCode();\n```\n\nAnd it was changed to:\n\n```java\nreturn 57 % getID().hashCode();\n```\n\nSo, instead of adding 57 and the hash code of the ID, we're now taking the modulus. The comment mentions that this change caused some tests to pass (like `TestMonthDay_Properties#testPropertyGetMonthOfYear`) but others failed or remained unchanged.\n\nNow, looking at the failing tests information, several tests related to `DateTimeZoneCutover` and `DateTimeZone` are still failing. For example, `TestDateTimeZoneCutover#testBug2182444_ausNSW` didn't change its status—still failing. Also, some new tests like `TestDateTimeZone#testEqualsHashCode` started failing because of the mutation.\n\nI need to determine if this particular mutant is causing adjacent faults or not. The concept here is whether changing one part of the code affects multiple unrelated areas, which would indicate a fault that's causing adjacent issues.\n\nLooking deeper, the `hashCode()` method is crucial for hash-based collections and equality checks. If two objects are equal (as per their `equals` method), they must return the same hash code. So, if the `getID().hashCode()` calculation changes significantly by using modulus instead of addition, it could affect how instances are stored in hash tables or used in sets.\n\nThe test that was fixed (`TestMonthDay_Properties#testPropertyGetMonthOfYear`) likely wasn't dependent on the exact value of the hash code but perhaps on some other aspect. On the other hand, the failing tests might be relying on the correct hash distribution or specific hash values for their assertions.\n\nSince multiple unrelated tests are failing after this change, it suggests that altering the `hashCode()` method has introduced unintended consequences across different parts of the system. This indicates that the mutant is causing adjacent faults because the change in one area (hash code calculation) affects other areas that depend on consistent hashing behavior.\n\nSo, putting it all together, yes, this mutation is causing adjacent faults because it's affecting several tests that aren't directly related to each other but rely on the correct implementation of `hashCode()`.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-395-3\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 577,
+    "total_tokens": 4673,
+    "prompt_eval_time_seconds": 1.0352,
+    "eval_time_seconds": 8.3139,
+    "total_time_seconds": 9.4035,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 61.23
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/395/3/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T18:03:49.229211",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZone#testEqualsHashCode": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_JustAfterLastEverOverlap": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestChronology#testEqualsHashCode_Zoned": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 1,
+  "time_cost": {
+    "total_time_seconds": 9.4248,
+    "preprocessing_time_seconds": 0.0009,
+    "llm_query_time_seconds": 9.424,
+    "start_timestamp": 1770948219.8043644,
+    "end_timestamp": 1770948229.2292097
+  }
+}

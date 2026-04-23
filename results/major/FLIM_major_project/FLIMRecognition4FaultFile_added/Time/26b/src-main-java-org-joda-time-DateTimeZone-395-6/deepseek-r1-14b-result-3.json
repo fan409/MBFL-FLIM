@@ -1,0 +1,64 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-395-6",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, let's try to figure out what's going on here. I'm looking at the problem where some tests are failing after a mutation in the code. The user provided information about which tests are passing or failing after the mutation and wants me to determine if the mutant is adjacent to a fault.\n\nFirst, I'll look at the Mutant Code Changes section. It shows that line 395 was modified from returning `getID().hashCode()` multiplied by 57 to dividing 57 by `getID().hashCode()`. So, the original code had `return 57 + getID().hashCode();` and it's now changed to `return 57 / getID().hashCode();`.\n\nThe tests that are failing after this change include:\n- TestMonthDay_Properties#testPropertyGetMonthOfYear: This test was fixed by mutation (status_change from failing to passing).\n- Several DateTimeZoneCutover tests remain failing.\n- Some other tests like TestDateTimeZone#testEqualsHashCode and others started failing because the mutation broke them.\n\nI need to determine if this mutant is adjacent to a fault. That means I should check if there are any nearby lines (like 394 or 396) that might be causing issues due to the change in line 395.\n\nLooking at the changes, line 395 directly affects the hashCode method of DateTimeZone. The hashCode is crucial for equality checks and hash-based collections. Changing it from addition to division could cause inconsistencies because two objects that were considered equal before might now have different hash codes or vice versa.\n\nFor example, if getID().hashCode() returns a value that when divided into 57 changes the overall hash code significantly, it might break the equals contract (i.e., two objects that are equal might not have the same hash code). This would cause issues in tests where the hash code is used to check equality or structure.\n\nSince the mutation changed line 395 and this affects multiple test cases related to equals and hashCode methods, it's likely that the fault is adjacent. The change in how the hash code is calculated could be causing these failures, especially because several tests now fail after this mutation.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-395-6\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 490,
+    "total_tokens": 4586,
+    "prompt_eval_time_seconds": 1.0365,
+    "eval_time_seconds": 7.073,
+    "total_time_seconds": 8.1656,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 59.86
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/395/6/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T18:06:33.652210",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZone#testEqualsHashCode": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_JustAfterLastEverOverlap": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestChronology#testEqualsHashCode_Zoned": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 3,
+  "time_cost": {
+    "total_time_seconds": 8.1866,
+    "preprocessing_time_seconds": 0.0011,
+    "llm_query_time_seconds": 8.1855,
+    "start_timestamp": 1770948385.4656415,
+    "end_timestamp": 1770948393.6522079
+  }
+}

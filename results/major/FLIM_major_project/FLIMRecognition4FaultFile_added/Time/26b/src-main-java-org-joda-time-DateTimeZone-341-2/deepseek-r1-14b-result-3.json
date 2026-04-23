@@ -1,0 +1,102 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-341-2",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out whether the mutant code change identified by \"src-main-java-org-joda-time-DateTimeZone-338-2\" is a fault adjacent mutation. Let me start by understanding what's going on here.\n\nFrom the provided information, there was a code change in the DateTimeZone.java file at line 341. The original code had:\n\nlong nextAdjusted = nextTransition(instantLocal - offsetAdjusted);\n\nAnd the mutant version changed it to:\n\nlong nextAdjusted = nextTransition(instantLocal * offsetAdjusted);\n\nSo, the mutation altered how 'nextAdjusted' is calculated by changing subtraction to multiplication.\n\nNow, looking at the test results, several tests started failing because of this change. For example, TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone now throws an IllegalArgumentException instead of a ComparisonFailure. That suggests that the mutation introduced incorrect behavior in handling timezone transitions, leading to invalid instants being created.\n\nAdditionally, other tests like testIsLocalDateTimeGap_Berlin and test_getOffsetFromLocal_Turk started failing after the mutation, which indicates that the change affected multiple parts of the system that rely on correct timezone calculations. This suggests that the mutant is not just introducing a bug in one specific area but potentially breaking several related functionalities.\n\nConsidering all this, it's clear that changing 'instantLocal - offsetAdjusted' to 'instantLocal * offsetAdjusted' was incorrect because multiplication doesn't make sense in this context. The original subtraction likely adjusted for timezone offsets properly, and the mutation disrupted that process.\n\nTherefore, since the mutant caused multiple tests to fail and introduced incorrect behavior, it is indeed a fault adjacent mutation.\n</think>\n\nThe mutant change at line 341 altered the calculation of 'nextAdjusted' from subtraction to multiplication, causing several tests to fail. This indicates a significant issue with how timezone transitions are handled.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-338-2\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 427,
+    "total_tokens": 4523,
+    "prompt_eval_time_seconds": 1.039,
+    "eval_time_seconds": 6.1571,
+    "total_time_seconds": 7.2524,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 58.7
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/341/2/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T16:54:25.192177",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (error message and stack trace changed)",
+      "error_diff": "--- original\n+++ mutant\n@@ -1 +1 @@\n-junit.framework.ComparisonFailure: expected:<...10-31T01:30:00.000+0[1:0]0> but was:<...10-31T01:30:00.000+0[0:3]0>\n+java.lang.IllegalArgumentException: Illegal instant due to time zone offset transition: 2010-10-31T00:30:00.000",
+      "stack_diff": "--- original\n+++ mutant\n@@ -1,7 +1,10 @@\n-at junit.framework.Assert.assertEquals(Assert.java:100)\n-at junit.framework.Assert.assertEquals(Assert.java:107)\n-at junit.framework.TestCase.assertEquals(TestCase.java:269)\n-at org.joda.time.TestDateTimeZoneCutover.testWithMinuteOfHourInDstChange_mockZone(TestDateTimeZoneCutover.java:685)\n+at org.joda.time.chrono.ZonedChronology.localToUTC(ZonedChronology.java:59)\n+at org.joda.time.chrono.ZonedChronology.getDateTimeMillis(ZonedChronology.java:48)\n+at org.joda.time.chrono.AssembledChronology.getDateTimeMillis(AssembledChronology.java:67)\n+at org.joda.time.base.BaseDateTime.<init>(BaseDateTime.java:51)\n+at org.joda.time.base.BaseDateTime.<init>(BaseDateTime.java:46)\n+at org.joda.time.DateTime.<init>(DateTime.java:45)\n+at org.joda.time.TestDateTimeZoneCutover.testWithMinuteOfHourInDstChange_mockZone(TestDateTimeZoneCutover.java:680)\n at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZone#testIsLocalDateTimeGap_Berlin": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_getOffsetFromLocal_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_plusDay_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hour_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minute_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_withZoneRetainFields_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_getOffsetFromLocal_NewYork_Spring": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_day_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_plusDayMidGap_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_MutableDateTime_setZoneRetainFields_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_day_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_hour_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testIsLocalDateTimeGap_NewYork": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_minusDay_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_minute_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 3,
+  "time_cost": {
+    "total_time_seconds": 7.2754,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 7.2742,
+    "start_timestamp": 1770944057.9167714,
+    "end_timestamp": 1770944065.1921747
+  }
+}

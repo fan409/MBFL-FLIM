@@ -1,0 +1,148 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-chrono-GJChronology-35-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out why some of the tests are failing after applying this mutant change. Let me start by understanding what the mutant code did.\n\nLooking at the changes in the GJChronology.java file, there's a line that was modified:\n\nOriginal line 35:\nreturn getInstance ( DateTimeZone.UTC, DEFAULT_CUTOVER, 4 );\n\nChanged to:\nreturn getInstance ( DateTimeZone.UTC, DEFAULT_CUTOVER, 0 );\n\nSo, the mutant changed the third parameter from 4 to 0 in the getInstance method. I need to understand what this parameter represents.\n\nFrom Joda Time's GJChronology documentation, the getInstance method likely takes parameters for timezone, cutoff date, and some other configuration, maybe the number of years or something related to the Julian-Gregorian transition. The default seems to be 4, which might represent a specific year or offset in how the chronology handles dates.\n\nNow, looking at the failing tests:\n\nThe tests that were fixed (status_change: failing->passing) are all in TestGJDate and TestGJChronology. These likely relate to date calculations around the cutoff point between Julian and Gregorian calendars. The mutant seems to have fixed these by changing how the cutoff is handled.\n\nOn the other hand, several tests that were passing before started failing after the mutation. For example, TestDateTimeFormatter tests for parsing dates in various formats broke. Also, tests like TestLocalDate_Constructors and TestTimeOfDay_Constructors failed. These might be due to incorrect date/time calculations when the chronology's cutoff is changed.\n\nSo, why did changing 4 to 0 fix some tests but break others?\n\nI think that the parameter (probably 'cutoffYear') determines how dates are interpreted around the transition from Julian to Gregorian. If it was set to 4 before, maybe it handled certain edge cases correctly for those failing tests. Changing it to 0 might have fixed their issues because now the cutoff is being applied differently.\n\nHowever, this change introduced new issues in other parts of the code that rely on the previous behavior. For example, date parsing and formatting might depend on how the cutoff is set, leading to incorrect results when the parameter was changed.\n\nTherefore, the mutant's change in GJChronology.java line 35 affects multiple areas. The fact that some tests were fixed suggests that this line was a critical point where an error occurred before. But the new failures indicate that other parts of the system are now dependent on this value being correct.\n\nI'm trying to think about what '4' and '0' mean in this context. Maybe 4 is the number of years after which some adjustment happens, or perhaps it's a specific year like 1582 when the Gregorian calendar was introduced in some regions. Changing this could affect how dates are calculated, especially around that transition period.\n\nIn summary, changing line 35 from 4 to 0 fixed certain date-related tests but broke others because other parts of the system rely on the previous value. So, the mutant is indeed adjacent to a fault because it's causing both improvements and regressions in different test cases.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-GJChronology-35-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 690,
+    "total_tokens": 4786,
+    "prompt_eval_time_seconds": 1.0445,
+    "eval_time_seconds": 9.855,
+    "total_time_seconds": 10.9565,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 62.88
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_6_buggy/src/main/java/org/joda/time/chrono/GJChronology/35/1/GJChronology.java",
+  "analysis_timestamp": "2026-02-12T08:08:26.684213",
+  "test_changes": {
+    "org.joda.time.chrono.TestGJDate#test_plusWeekyears_positiveToNegative_crossCutover": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.chrono.TestGJDate#test_plusYears_positiveToNegative_crossCutover": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.chrono.TestGJDate#test_plusWeekyears_positiveToZero_crossCutover": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.chrono.TestGJDate#test_plusYears_positiveToZero_crossCutover": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.chrono.TestGJDate#test_cutoverPreZero": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_weekyear_month_week_2010": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_year_month_week_2016": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_year_month_week_2014": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testEquality": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_weekyear_month_week_2011": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDateTime_monthDay_withDefaultYear_feb29": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testLeapYearRulesConstruction": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testFactoryUTC": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testWithZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_year_month_week_2011": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormat#testFormat_yearOfEraParse": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors#testConstructor_Object2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testDurationFields": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_year_month_week_2015": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeUtils#testIsContiguous_RP_GJChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_year_month_week_2013": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_year_month_week_2012": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors#testConstructor_Object2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testMaximumValue": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_year_month_week_2010": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_monthDay_feb29": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testLeapYearRulesConstructionInvalid": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_yearOfCentury": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_monthDay_withDefaultYear_feb29": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestIllegalFieldValueException#testGJCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_yearOfEra": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_weekyear_month_week_2012": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDateTime_monthDay_feb29": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testTimeOfDayAdd": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testWithUTC": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 2,
+  "time_cost": {
+    "total_time_seconds": 10.9752,
+    "preprocessing_time_seconds": 0.0011,
+    "llm_query_time_seconds": 10.974,
+    "start_timestamp": 1770912495.7090526,
+    "end_timestamp": 1770912506.6842113
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-135-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out whether the mutant code change introduced by the mutation at line 135 in DateTimeZone.java is causing any issues with being adjacent to a fault. The mutant changed the condition from if (iFixedOffsetCache == null) to if (false). Let me walk through this step by step.\n\nFirst, looking at the original code around lines 132-138:\n\n```java\nprivate static synchronized DateTimeZone fixedOffsetZone(String id, int offset) {\n    if (offset == 0) {\n        return DateTimeZone.UTC;\n    }\n    if (iFixedOffsetCache == null) {\n        iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n    }\n    DateTimeZone zone;\n    Reference<DateTimeZone> ref = iFixedOffsetCache.get(id);\n    // ... rest of the code\n}\n```\n\nThe mutant changed line 135 from checking if `iFixedOffsetCache == null` to always being false. So now it's:\n\n```java\nif (false) {\n    iFixedOffsetCache = new HashMap<String, SoftReference<DateTimeZone>>();\n}\n```\n\nSo this means that the cache initialization is skipped every time `fixedOffsetZone` is called when `offset != 0`. That could be a problem because if `iFixedOffsetCache` is never initialized, subsequent calls to get from it will return null, leading to potential NullPointerExceptions.\n\nLooking at the failing tests information, I see several tests that were passing before but now are failing. For example, the test `TestDateTimeZone#testForOffsetHours_int` was passing and now fails because of a mutation. This suggests that by not initializing the cache, some code paths that rely on it are now failing.\n\nIn particular, when the mutant runs, any method that calls `fixedOffsetZone` without an offset of zero will skip creating the cache. If another thread or subsequent calls try to access the cache before it's initialized, they'll get a null reference, which could cause NPEs.\n\nSo, is this mutation causing the code to be adjacent to a fault? In other words, does this change create a situation where nearby code might have issues?\n\nThe original code initializes `iFixedOffsetCache` only if it's null. The mutant skips that initialization entirely. Since `fixedOffsetZone` is called in various places, not initializing the cache could lead to race conditions or NPEs when trying to use it later.\n\nFor example, in `testParseDateTime_offsetParsed`, which now fails, might be using a DateTimeFormatter that relies on DateTimeZone's cache. Without the cache being initialized, parsing could fail.\n\nThus, this mutation is definitely causing issues because it removes necessary initialization code. The change is adjacent to the fault because it directly affects the cache's state, leading to failures in dependent tests.\n</think>\n\nThe mutant at line 135 skips initializing `iFixedOffsetCache`, which causes multiple test failures due to missing cache initialization.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-135-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 651,
+    "total_tokens": 4747,
+    "prompt_eval_time_seconds": 1.0443,
+    "eval_time_seconds": 9.4038,
+    "total_time_seconds": 10.5075,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 61.82
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/135/1/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T14:35:07.439693",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (error message and stack trace changed)",
+      "error_diff": "--- original\n+++ mutant\n@@ -1 +1 @@\n-junit.framework.ComparisonFailure: expected:<...10-31T01:30:00.000+0[1:0]0> but was:<...10-31T01:30:00.000+0[0:3]0>\n+java.lang.NullPointerException",
+      "stack_diff": "--- original\n+++ mutant\n@@ -1,7 +1,7 @@\n-at junit.framework.Assert.assertEquals(Assert.java:100)\n-at junit.framework.Assert.assertEquals(Assert.java:107)\n-at junit.framework.TestCase.assertEquals(TestCase.java:269)\n-at org.joda.time.TestDateTimeZoneCutover.testWithMinuteOfHourInDstChange_mockZone(TestDateTimeZoneCutover.java:685)\n+at org.joda.time.DateTimeZone.fixedOffsetZone(DateTimeZone.java:138)\n+at org.joda.time.DateTimeZone.forOffsetMillis(DateTimeZone.java:106)\n+at org.joda.time.DateTimeZone.forOffsetHoursMinutes(DateTimeZone.java:103)\n+at org.joda.time.TestDateTimeZoneCutover.testWithMinuteOfHourInDstChange_mockZone(TestDateTimeZoneCutover.java:677)\n at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZone#testForOffsetHours_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseDateTime_offsetParsed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testTimeZoneConversion": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2005": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseMutableDateTime_offsetParsed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2004": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testGetOffsetFixed_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2006": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testTransitionFixed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForTimeZone_TimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#testNearDstTransition": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testGetOffsetFixed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Constructors#testParse_noFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalTime_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDate_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestISOChronology#testDurationFields": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForOffsetMillis_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testEqualsHashCode": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForOffsetHoursMinutes_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testForID_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseInto_offsetParsed": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2003": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testParseLocalDateTime_simple": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 2,
+  "time_cost": {
+    "total_time_seconds": 10.5314,
+    "preprocessing_time_seconds": 0.0008,
+    "llm_query_time_seconds": 10.5306,
+    "start_timestamp": 1770935696.9083338,
+    "end_timestamp": 1770935707.439691
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-348-8",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out whether the mutant with ID src-main-java-org-joda-time-DateTimeZone-348-8 is a fault adjacent mutant. Let me break this down step by step.\n\nFirst, looking at the mutation information provided. The original code in lines 347-350 was:\n\nline 347: long instantLocal = instantUTC + offset;\nif ( ( instantUTC ^ instantLocal ) < 0 && ( instantUTC ^ offset ) >= 0 ) {\n    throw new ArithmeticException ( \"Adding time zone offset caused overflow\" );\n}\nreturn instantLocal;\n\nThe mutant changed line 348 to:\n\nif ( ( instantUTC ^ instantLocal ) < 0 && ( instantUTC & offset ) >= 0 )\n\nSo the change is from using XOR (^) in the second condition to AND (&). \n\nNow, I need to understand what this change does. Let's think about what each part of the condition represents.\n\nThe first part, (instantUTC ^ instantLocal) < 0, checks if there's a sign difference between instantUTC and instantLocal because XOR will have a carry bit set if they differ in sign. So if instantLocal is negative when instantUTC was positive or vice versa, this would be true.\n\nThe second condition in the original code was (instantUTC ^ offset) >= 0. That might be checking whether adding the offset didn't cause an overflow by looking at the XOR of instantUTC and offset. But changing it to (instantUTC & offset) >=0 could change the logic entirely because AND operation only checks specific bits.\n\nWait, actually, I think that's incorrect. Let me double-check: The original condition was (instantUTC ^ offset) >= 0, which might be trying to see if adding the offset caused an overflow by checking their XOR's sign bit. But after mutation, it becomes (instantUTC & offset) >=0.\n\nI'm not entirely sure about what this change implies. Maybe the intention is to check if both instantUTC and offset have certain bits set. Alternatively, perhaps it was a typo or misunderstanding of bitwise operations.\n\nLooking at the failing tests: \n\n- The test \"org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear\" changed from failing to passing, which suggests that this mutation fixed that particular test case.\n- However, several other tests started failing because they were previously passing. This indicates that the mutation introduced new issues elsewhere.\n\nBut the question is whether this mutant is a fault adjacent one. A fault adjacent mutant usually refers to a change that fixes a bug but doesn't introduce others, or it's very close to where the issue was.\n\nIn this case, since the test \"TestMonthDay_Properties#testPropertyGetMonthOfYear\" started passing after the mutation, perhaps the original code had an error in how it handled time conversions. But when the mutant changed, it fixed that specific test but broke others because other parts of the system rely on the previous behavior.\n\nSo is this mutant fixing a fault adjacent issue? It seems like it was meant to fix an overflow check but may have inadvertently caused other issues by changing the condition incorrectly.\n\nI think yes, because the mutation was intended to prevent overflows (probably near where the offset addition happens) but ended up causing more test failures. Hence, it's likely that this mutant is adjacent to a fault area in the code.\n</think>\n\nThe mutant modifies an overflow check in `DateTimeZone`'s conversion method, fixing one failing test but breaking others, indicating it's near a bug-prone area.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-348-8\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 773,
+    "total_tokens": 4869,
+    "prompt_eval_time_seconds": 1.0378,
+    "eval_time_seconds": 11.1005,
+    "total_time_seconds": 12.1901,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 63.29
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/348/8/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T17:01:09.953094",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeUtils#testGetInstantChronology_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_getAsShortText_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_getLeapAmount_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoInterval_Object3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_getAsText_long_Locale": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_isLeap_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_roundHalfEven_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testSingleton": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeUtils#testGetChronology_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#testNearDstTransition": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeUtils#testGetIntervalChronology_RI_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableInstantConverter#testGetPartialValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_remainder_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_set_long_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testGetChronology_Object_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_add_long_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_getAsShortText_long_Locale": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_set_long_String_Locale": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestLongConverter#testGetPartialValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoInterval_Object2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestCalendarConverter#testGetPartialValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testSupportedType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_lenientChrononolgy_Turk": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoInterval_Object4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testGetChronology_Object_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestDateConverter#testGetPartialValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_lenientChrononolgy_Chicago": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeUtils#testGetIntervalChronology_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_add_long_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_set_long_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter#testPrint_chrono_and_zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_addWrapField_long_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_getAsText_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoInterval_Object1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_get": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testGetPartialValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 4,
+  "time_cost": {
+    "total_time_seconds": 12.2142,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 12.213,
+    "start_timestamp": 1770944457.7388988,
+    "end_timestamp": 1770944469.9530919
+  }
+}

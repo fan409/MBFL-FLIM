@@ -1,0 +1,536 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-chrono-ZonedChronology-165-10",
+  "is_fault_adjacent": false,
+  "is_flim": true,
+  "error": "Failed to parse JSON response",
+  "raw_response": "<think>\nOkay, so I need to figure out how to determine if a mutant is adjacent to the fault in the given Joda-Time codebase. The user provided a list of mutants that have caused tests to fail, and they want to know for each mutant whether it's adjacent to the fault. \n\nFirst, I should understand what \"adjacent\" means here. In software terms, two mutations are adjacent if their line numbers in the source file are consecutive or very close. So if a mutant is on line 10 and another is on line 11, they're adjacent. But sometimes, adjacent could also mean within a few lines, like 5 lines apart.\n\nLooking at the input data, I see that each entry has a \"mutant_id\" which includes a file path and two line numbers separated by a hyphen. For example, \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\". This likely means that the mutant was applied to lines 165 and 166 of the ZonedChronology.java file because it's between them.\n\nThe task is to check for each mutant whether its line numbers are adjacent. So for a mutant with line numbers x and y, I need to see if |x - y| equals 1 or maybe within a small range like 2 or 3.\n\nLet me take the first example: \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\". Wait, that doesn't make sense because 165 and 10 are far apart. That can't be right. Oh wait, maybe I misread it. Perhaps the mutant_id format is different. Maybe it's just a single line number, like \"ZonedChronology.java\" line 165.\n\nWait, looking back at the input data, each mutant_id seems to have two numbers after the last dash, but they might be indicating something else. Hmm, perhaps I should clarify. But given the user provided format, I think each mutant is a single-line change because it's written as \"file.java-123-456\", which doesn't make sense for adjacent lines.\n\nWait, maybe I'm misunderstanding the mutant_id format. Let me look again: The sample input shows that each entry in the JSON has a \"mutant_id\" key with values like \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\". So perhaps this indicates that the mutation is on line 165 and affects line 10? That seems unlikely because lines are ordered. Alternatively, maybe it's a typo or misinterpretation.\n\nAlternatively, perhaps the mutant_id represents a range of lines affected by the mutation. For example, from line 165 to line 10 might not make sense as they're far apart. So I'm confused about how to interpret this part.\n\nWait, perhaps each mutant affects only one line, so the two numbers are not relevant for adjacency but maybe version or something else. Maybe the format is more like \"file.java:line_number\". But in the given data, it's separated by hyphens, which complicates things.\n\nAlternatively, maybe the \"-165-10\" part indicates that the mutant was applied to line 165 and affects line 10? That doesn't make sense as they are far apart. So perhaps I'm misunderstanding the structure of the mutant_id.\n\nWait, looking again: The user's input is a JSON where each key is a string like \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\". This suggests that it's a path with two line numbers. So perhaps the actual file is ZonedChronology.java at line 165, and maybe 10 is another number, but not necessarily related to lines.\n\nAlternatively, maybe each mutant_id represents a single line number after the last hyphen. For example, \"ZonedChronology-165\" would be line 165. But in the given data, it's \"-165-10\", which is unclear.\n\nI think I need to make an assumption here since the exact structure isn't clear. Let's assume that each mutant affects a single line, and the number after the last hyphen is the line number. So for example, \"ZonedChronology-165\" would be line 165, but in the data provided, it's \"-165-10\", which might mean line 10 of ZonedChronology.java.\n\nAlternatively, perhaps the format is that each mutant_id includes two line numbers indicating the start and end of the mutation. So for example, a mutation from line 165 to 166 would be considered adjacent because they are consecutive lines.\n\nIf that's the case, then for each mutant_id, I need to extract both line numbers and check if their difference is 1 (or maybe up to 2 or 3). \n\nLooking at one of the examples: \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\". If this represents lines 165 and 10, they are definitely not adjacent. But if it's a typo and should be \"-165-166\", then they are adjacent.\n\nBut without clear information on how the mutant_id is structured, I might have to proceed with an assumption. Let's assume that each mutant affects exactly one line, so the last number after the hyphen is the line number. Therefore, for each mutant, we only need to check if any other mutant in the list has a line number that's adjacent (i.e., differs by 1).\n\nSo, for example, if there are two mutants: \"ZonedChronology-10\" and \"ZonedChronology-11\", then they are adjacent. But if it's \"ZonedChronology-10\" and \"ZonedChronology-12\", they're not.\n\nGiven that the user wants to know for each mutant whether any other mutant is adjacent, I need to process all mutants in the list and compare their line numbers pairwise.\n\nBut wait, looking back at the input data provided by the user, it's a single JSON object with multiple entries. Each entry has a \"mutant_id\" which seems to include two line numbers. For example:\n\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\",\n    ...\n}\n\nSo perhaps the format is that each mutant affects lines 165 and 10, but that doesn't make sense as they are far apart. Alternatively, maybe it's a typo, and the correct line numbers should be consecutive.\n\nAlternatively, perhaps the two numbers represent something else, like version or build number, not line numbers. That would complicate things further.\n\nGiven this uncertainty, I think the best approach is to assume that each mutant affects a single line, identified by the last number in the mutant_id string after the last hyphen. So for \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\", the line would be 10.\n\nIf this assumption is correct, then I can process each mutant to extract their single line number and check if any other mutant in the list has a line number that's one more or less than theirs. If so, they are adjacent.\n\nBut looking at the sample output format:\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\",\n    \"is_fault_adjacent\": bool (True or False)\n}\n```\n\nThe output is for each mutant, indicating whether it's adjacent to the fault. The key here is determining which mutants are close to where the actual bug (fault) was fixed.\n\nBut wait, in this scenario, I don't have information about the specific line where the fault occurred. So how can I determine adjacency? Unless all the failing tests are due to a single fault, and any mutant that is on an adjacent line would be considered as potentially fixing or being related to it.\n\nAlternatively, perhaps the idea is that if multiple mutants are close to each other in terms of line numbers, they might be related to the same bug. So for each mutant, we need to check if there exists another mutant with a line number within 1 (or maybe 2) lines away.\n\nSo the approach would be:\n\n1. Parse all the mutant_id strings to extract their line numbers.\n2. For each mutant's line number, check if any other mutant has a line number that is either +1 or -1 from it.\n3. If such a mutant exists, mark \"is_fault_adjacent\" as True; otherwise, False.\n\nBut given that I don't have the actual line where the fault occurred, perhaps the idea is to find mutants that are close in terms of code structure, regardless of their position relative to the actual fault.\n\nAlternatively, maybe the question is to check if a mutant's line number is adjacent (i.e., consecutive) to another mutant's line number, implying they might be related or part of the same issue.\n\nBut without more context, it's challenging. However, based on the problem statement and examples, I think the key is to determine for each mutant whether its line number is close (adjacent) to any other mutant's line number in the list.\n\nSo, step by step:\n\n1. Extract all line numbers from each mutant_id.\n2. For each mutant, compare their line number with every other mutant's line number.\n3. If any pair has a difference of 1, mark both as adjacent.\n4. However, since we're dealing with multiple mutants and want to know if each is adjacent to the \"fault,\" perhaps the fault's line is known, but it's not provided here.\n\nWait, another angle: The user is trying to identify which mutants are near the faulty line that caused test failures. So if a mutant is on the same or nearby line as the bug fix, it might be related.\n\nBut without knowing where the actual bug was fixed, this approach isn't feasible. Therefore, perhaps the intended solution is to assume that any two consecutive line mutations are adjacent, and thus, for each mutant, check if there's another with a line number within 1.\n\nGiven all that, I'll proceed under the assumption that each mutant affects a single line (the last number in the mutant_id), and \"is_fault_adjacent\" is True if any other mutant exists on an adjacent line.\n\nBut looking at the sample data provided by the user, it's a bit confusing. For example:\n\nThe first entry is:\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\",\n    ...\n}\n\nIf this represents that the mutation was on line 10 of ZonedChronology.java, then perhaps all these mutants are affecting various lines. But without knowing which one is the faulty line, it's impossible to determine adjacency relative to the fault.\n\nWait, maybe I'm overcomplicating. Perhaps the user wants a system where, given a list of failed tests due to certain mutants, we can find if any of those mutants are on adjacent lines, implying they might be related.\n\nIn that case, for each mutant, check if there's another mutant in the same file with a line number differing by 1. If so, mark it as adjacent.\n\nBut again, without knowing which is the faulty line, this approach may not directly answer the question. So perhaps the correct way is to assume that any two mutants affecting consecutive lines are considered adjacent.\n\nSo for each mutant_id, extract the line number (assuming last part after hyphen), and then compare with all other mutants' line numbers in the same file. If any have a difference of 1, mark as True.\n\nBut given that I don't have the actual list of failed mutants beyond the example, perhaps it's better to proceed by writing code that processes each mutant_id, extracts the line number (last part), and for each, checks if there are others with line numbers +/-1.\n\nBut since this is a thought process, not actual code, let's think through an example:\n\nSuppose two mutants:\n- Mutant A: line 10\n- Mutant B: line 11\n\nThey are adjacent. So when processing Mutant A, we find that Mutant B exists and thus mark both as adjacent.\n\nIn the output JSON, for each mutant, \"is_fault_adjacent\" would be True.\n\nBut if a mutant is on line 20 with no others nearby, then it's False.\n\nSo in conclusion, to determine if a mutant is adjacent to another, we need to compare their line numbers. If any pair has a difference of 1, they are considered adjacent.\n</think>\n\nTo determine if each mutant is adjacent to the fault, we need to check if there exists another mutant on a consecutive line number.\n\n**Step-by-Step Explanation:**\n\n1. **Extract Line Numbers:** For each mutant_id, extract the line number (assuming it's the last part after the hyphen).\n2. **Check Adjacency:** Compare each mutant's line number with all others in the same file to see if any are consecutive.\n3. **Mark Adjacent Status:** If a mutant has another on an adjacent line, mark as True; otherwise, False.\n\n**Example:**\n\n- Mutant 1: Line 10 → No other mutants on lines 9 or 11 → is_fault_adjacent = False\n- Mutant 2: Line 11 → Mutant 1 is on line 10 → is_fault_adjacent = True\n\n**Answer:**\n\nFor each mutant, we check if any other mutant exists on a consecutive line. If so, it's marked as adjacent.\n\n```json\n{\n    \"src-main-java-org-joda-time-chrono-ZonedChronology-165-10\": {\n        \"is_fault_adjacent\": false\n    },\n    // ...other mutants processed similarly\n}\n```\n\n(Note: The actual output would depend on the specific line numbers and their proximity in the codebase.)",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 2961,
+    "total_tokens": 7057,
+    "prompt_eval_time_seconds": 1.0476,
+    "eval_time_seconds": 42.32,
+    "total_time_seconds": 43.4193,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 68.14
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/chrono/ZonedChronology/165/10/ZonedChronology.java",
+  "analysis_timestamp": "2026-02-12T19:47:55.047060",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RP2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long_PeriodType_Chronology2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Basics#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Constructors#testConstructor_RI_RP4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long_PeriodType_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_RI_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_Chronology3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_8ints2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedYearMonthDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_RD2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableDurationConverter#testSetInto_Object": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long_NoHours": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_Object_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonths#testFactory_monthsIn_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RInterval3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long_NoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYears#testFactory_yearsIn_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI_PeriodType4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RD_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Updates#testSePeriodAfterStart_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_long3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI_PeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_PeriodType_Chronology3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestHours#testFactory_hoursIn_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDuration_Basics#testToPeriod": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_PeriodType_Chronology3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_PeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonths#testFactory_monthsBetween_RInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDuration_Basics#testToPeriodTo_PeriodType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_RP2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testToPeriod_PeriodType3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long_NoDays": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestHours#testFactory_hoursBetween_RInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI_PeriodType3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long_PeriodType_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Basics#testToPeriod": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long_NoWeeks": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long_NoMinutes": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI_PeriodType4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDuration_Basics#testToPeriodFrom": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_PeriodType4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RInterval1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RInterval2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoPeriod_Object1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Basics#testToPeriod": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RD1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RP3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestWeeks#testFactory_weeksIn_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Basics#testWithPeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDuration_Basics#testToPeriodTo": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Basics#testToPeriod_PeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Basics#testToDurationFrom": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Basics#testToDurationTo": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_long_Chronology3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Updates#testSePeriodBeforeEnd_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMinutes#testFactory_minutesIn_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_PeriodType4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_PeriodType_Chronology4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long_NoSeconds": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_PeriodType3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Basics#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_8ints1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RD_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedISOChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Constructors#testConstructor_RP_RI4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_PeriodType_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RInterval4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RD2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Basics#testToPeriod_PeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_RI_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSeconds#testFactory_secondsBetween_RInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_long_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_long_Chronology2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_8ints2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Constructors#testConstructor_RP_RI4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Constructors#testConstructor_RI_RP4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long_PeriodType3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long_Chronology2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testMergePeriod_RP2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_PeriodType3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDays#testFactory_daysBetween_RInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long_NoMonths": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_RInterval1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long_Chronology2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RP1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long_PeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long_long_NoYears": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long_PeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long_PeriodType3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Basics#testToPeriod_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_PeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Basics#testToPeriod_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSeconds#testFactory_secondsIn_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDuration_Basics#testToPeriodFrom_PeriodType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_PeriodType_Chronology4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_PeriodType_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI_PeriodType2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGregorianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Updates#testSetPeriodAfterStart_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestBaseSingleFieldPeriod#testFactory_between_RInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_getDifference_long_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testSetPeriod_RD1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RI_PeriodType3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDays#testFactory_daysIn_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedJulianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Updates#testSetPeriodBeforeEnd_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYears#testFactory_yearsBetween_RInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_Chronology3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZoneUTC": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMinutes#testFactory_minutesBetween_RInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Basics#testWithPeriodType4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronologyChangedInternals": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestWeeks#testFactory_weeksBetween_RInstant": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates#testAdd_RD1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_RI_RI_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RD_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedTimeOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RD_RI_PeriodType1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoPeriod_Object2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Basics#testToDurationFrom": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors#testConstructor_long_long_PeriodType_Chronology2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_RI_RD1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors#testConstructor_long_long_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 2,
+  "time_cost": {
+    "total_time_seconds": 43.4556,
+    "preprocessing_time_seconds": 0.001,
+    "llm_query_time_seconds": 43.4545,
+    "start_timestamp": 1770954431.591478,
+    "end_timestamp": 1770954475.047059
+  }
+}

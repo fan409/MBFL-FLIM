@@ -1,0 +1,60 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-91-6",
+  "is_fault_adjacent": false,
+  "is_flim": true,
+  "raw_response": "<think>\nAlright, let's try to figure out whether the mutant with ID src-main-java-org-joda-time-DateTimeZone-91-6 is a fault adjacent mutant. \n\nFirst, I need to understand what the mutant does. Looking at the code change provided:\n\nThe original line was:\nif ( minutesOffset < 0 || minutesOffset > 59 ) {\n\nAnd the mutant changed it to:\nif ( minutesOffset < 0 || minutesOffset > 0 ) {\n\nSo, instead of checking if minutes are within 0-59, it's now only checking if they're negative or greater than 0. That means any positive minute offset is considered invalid unless it's exactly 0.\n\nNow, looking at the failing tests information. There are a few relevant points:\n\n1. **TestMonthDay_Properties#testPropertyGetMonthOfYear**: This test was fixed by mutation. So the mutant might have corrected an issue here, possibly related to string comparison or localization, but that's probably unrelated to this specific code change.\n\n2. **TestDateTimeZoneCutover tests**:\n   - Some tests like #testWithMinuteOfHourInDstChange_mockZone started failing because of an IllegalArgumentException: Minutes out of range: 30.\n   - The error message changed from a comparison failure to an exception, indicating that the mutant introduced a new validation step where minutes > 0 are considered invalid.\n\n3. **TestDateTimeZone#testForOffsetHoursMinutes_int_int**: This test was passing before but now fails because of the mutant. It likely expects valid minute offsets beyond 0 and gets an error when they're positive.\n\nSo, for the mutant in question (line 91), it's changing how minutes are validated. The original check allowed any minute between 0-59, while the mutant only allows exactly 0. This would break any code that expects a valid minute offset beyond zero.\n\nThe tests failing after this change suggest that other parts of the system rely on being able to have non-zero but valid minute offsets. Therefore, the mutant is introducing a new bug by limiting minutes to only 0.\n\nNow, regarding \"fault adjacent\": Fault adjacent mutants are those that detect or correct the same fault as the original issue. In this case, the mutant doesn't fix the problem it was intended to solve; instead, it creates a new issue by incorrectly validating minute offsets.\n\nSince the tests for DateTimeZoneCutover and DateTimeZone started failing because of this change, it indicates that the mutant is not fixing any existing fault but introducing a new one. Therefore, it's not a fault adjacent mutant.\n</think>\n\nThe mutant changes the validation of minutes to only allow exactly 0, which breaks other parts of the system expecting valid positive minute offsets.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-91-6\",\n    \"is_fault_adjacent\": false\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 601,
+    "total_tokens": 4697,
+    "prompt_eval_time_seconds": 1.0373,
+    "eval_time_seconds": 8.6734,
+    "total_time_seconds": 9.7743,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 61.35
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/91/6/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T13:54:58.904417",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (error message and stack trace changed)",
+      "error_diff": "--- original\n+++ mutant\n@@ -1 +1 @@\n-junit.framework.ComparisonFailure: expected:<...10-31T01:30:00.000+0[1:0]0> but was:<...10-31T01:30:00.000+0[0:3]0>\n+java.lang.IllegalArgumentException: Minutes out of range: 30",
+      "stack_diff": "--- original\n+++ mutant\n@@ -1,7 +1,5 @@\n-at junit.framework.Assert.assertEquals(Assert.java:100)\n-at junit.framework.Assert.assertEquals(Assert.java:107)\n-at junit.framework.TestCase.assertEquals(TestCase.java:269)\n-at org.joda.time.TestDateTimeZoneCutover.testWithMinuteOfHourInDstChange_mockZone(TestDateTimeZoneCutover.java:685)\n+at org.joda.time.DateTimeZone.forOffsetHoursMinutes(DateTimeZone.java:92)\n+at org.joda.time.TestDateTimeZoneCutover.testWithMinuteOfHourInDstChange_mockZone(TestDateTimeZoneCutover.java:677)\n at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZone#testForOffsetHoursMinutes_int_int": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 2,
+  "time_cost": {
+    "total_time_seconds": 9.7974,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 9.7961,
+    "start_timestamp": 1770933289.107043,
+    "end_timestamp": 1770933298.9044142
+  }
+}

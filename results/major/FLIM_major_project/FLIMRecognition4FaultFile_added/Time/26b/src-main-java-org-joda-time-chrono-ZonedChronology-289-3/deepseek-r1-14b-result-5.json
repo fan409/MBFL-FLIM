@@ -1,0 +1,166 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-chrono-ZonedChronology-289-3",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nAlright, let's try to figure out what's going on here. I'm looking at the problem where a mutation was made in the ZonedChronology.java file, specifically changing line 289 from subtracting the offset to adding it. The original code had:\n\ninstant = iField.roundCeiling(instant - offset);\n\nand the mutant changed it to:\n\ninstant = iField.roundCeiling(instant - offset);\n\nWait, no, actually looking back, in the user's message, the mutation was changing line 290 from returning instant - offset to instant + offset. Let me clarify.\n\nThe original code at lines 289-290 was:\n\n289:                 instant = iField.roundCeiling(instant - offset);\n290:                 return instant - offset;\n\nThe mutant changed line 290 to return instant + offset instead of subtracting.\n\nSo the change is in how the returned value is calculated after rounding. The original subtracted the offset, and the mutant added it.\n\nNow, looking at the tests that were affected by this mutation:\n\n- TestMonthDay_Properties#testPropertyGetMonthOfYear: This test was fixed because the mutation made it pass.\n- Several other tests like TestDateTimeZoneCutover's various methods started failing because the mutation broke them. Additionally, some TestSerialization and TestMutableDateTime tests also failed.\n\nThe key here is to determine if this mutation is adjacent in terms of fault impact. That means whether the change affects the same part of the system or a different one.\n\nIn this case, the mutation was made in ZonedChronology's roundCeiling method, which deals with time zone conversions and rounding times. The tests that failed include various DateTimeZoneCutover tests, which handle daylight saving transitions, as well as serialization and mutabledatetime properties. \n\nThe test that passed (TestMonthDay_Properties) is likely a different part of the codebase, dealing with month/day properties rather than time zones or rounding.\n\nSince the mutation affects the way times are rounded in time zones, it's possible that this change impacts multiple parts of the system, especially those dealing with date/time calculations. However, TestMonthDay_Properties seems to be unrelated directly to time zone handling but more about properties of month and day, which might have been indirectly affected or perhaps a coincidence.\n\nBut looking at the test status changes:\n\n- One test (TestMonthDay) went from failing to passing.\n- Many others went from passing to failing.\n\nThis suggests that while the mutation fixed one issue, it introduced several new issues elsewhere. The fact that TestMonthDay passed indicates that this particular test was likely relying on an incorrect behavior before, which is now corrected by the mutation.\n\nNow, considering if the mutant_id \"src-main-java-org-joda-time-chrono-ZonedChronology-289-3\" is adjacent to other fault points. If changing line 290 from subtracting offset to adding it affects multiple parts of the system that rely on correct time zone handling and rounding, then this mutation is introducing a new fault in those areas.\n\nHowever, since only TestMonthDay_Properties went from failing to passing, while others failed, it's possible that other tests were already correctly relying on the original behavior. So the mutation might be fixing one issue but causing regressions elsewhere because it altered the expected rounding logic.\n\nTherefore, is the mutant adjacent in terms of fault impact? Yes, because the change affects multiple test cases across different parts of the codebase, indicating a broader impact than just a single fault point.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-ZonedChronology-289-3\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 774,
+    "total_tokens": 4870,
+    "prompt_eval_time_seconds": 1.0446,
+    "eval_time_seconds": 11.0941,
+    "total_time_seconds": 12.1987,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 63.36
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/chrono/ZonedChronology/289/3/ZonedChronology.java",
+  "analysis_timestamp": "2026-02-12T21:11:57.932049",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minuteOfHour_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hour_NewYork_Spring_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundHalfEvenHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_secondOfMinute_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundCeilingHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_roundCeiling_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundHalfFloorHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_roundHalfFloor_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_roundHalfCeiling_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.field.TestOffsetDateTimeField#test_roundHalfEven_long": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedISOChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGregorianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundHalfFloorHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedYearMonthDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minuteOfHour_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedJulianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hourOfDay_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZoneUTC": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundCeilingHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hour_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minute_NewYork_Spring_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronologyChangedInternals": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_secondOfMinute_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundHalfEvenHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties#testPropertyRoundHalfCeilingHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedTimeOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minute_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties#testPropertyRoundHalfCeilingHourOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding5": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics#testRounding3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hourOfDay_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 5,
+  "time_cost": {
+    "total_time_seconds": 12.2168,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 12.2156,
+    "start_timestamp": 1770959505.715214,
+    "end_timestamp": 1770959517.9320471
+  }
+}

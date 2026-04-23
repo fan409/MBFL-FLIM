@@ -1,0 +1,542 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-format-DateTimeFormatterBuilder-1230-6",
+  "is_fault_adjacent": false,
+  "is_flim": true,
+  "error": "Failed to parse JSON response",
+  "raw_response": "<think>\nOkay, let's try to figure out how to solve this problem. So the user provided a JSON object with a bunch of test results for different mutants in the Joda-Time library. Each mutant has a status indicating whether it was passing or failing after mutation. The task is to determine which mutants are adjacent faults based on these results.\n\nFirst, I need to understand what an \"adjacent fault\" means here. From what I remember, in software engineering, adjacent faults refer to situations where two mutants that are very close to each other (like neighboring lines of code) both fail the tests. This is interesting because it suggests that they might be related or interacting in some way.\n\nLooking at the input JSON, each key is a mutant ID, and the value is \"passing\" or \"failing\". The output needs to be a JSON object with each mutant's ID and whether it has an adjacent fault.\n\nSo my plan is:\n\n1. **Parse the Input**: I'll process each mutant ID and note whether they passed or failed.\n2. **Identify Failing Mutants**: Extract all mutants that are failing because only these can potentially have adjacent faults.\n3. **Find Adjacent Mutant IDs**: For each failing mutant, check if there's another failing mutant in the nearby lines (like the next or previous line).\n4. **Check for Closeness**: How close do they need to be? The example given in the problem seems to consider mutants on adjacent lines as adjacent.\n5. **Determine Adjacency**: For each failing mutant, look at its line number and see if the next or previous mutant also failed.\n\nBut wait, I'm not sure how the line numbers are structured here. Each mutant ID is something like \"src-main-java-org-joda-time-format-DateTimeFormatterBuilder-1230-6\". The part after the last hyphen seems to be the line number within that file. So for example, if one mutant is at 1230-6 and another at 1230-7, they are adjacent.\n\nSo I need to extract the line numbers from each mutant ID and group mutants by their file. Then, for each failing mutant, check the next and previous line numbers in that file to see if there's a failing mutant.\n\nI should create a dictionary where the key is the file path (everything before the last hyphen) and the value is a list of line numbers within that file where mutants failed.\n\nOnce I have this structure, for each failing mutant, I can check if the next or previous line in the same file also has a failing mutant. If so, then it's an adjacent fault.\n\nBut how do I handle cases where the line number increments by more than one? Like if there are no mutants on lines between two others. For example, if one is at 1230-5 and another at 1230-7, they aren't adjacent.\n\nI think only consecutive line numbers would be considered adjacent. So I'll check the immediate next and previous lines.\n\nSo steps in code:\n\n1. **Extract File and Line**: For each mutant ID, split into file and line number.\n2. **Group by File**: Create a dictionary where keys are files and values are lists of line numbers that failed.\n3. **Sort Lines**: For each file's list of failing lines, sort them to make it easier to find adjacent ones.\n4. **Check Adjacent Lines**: For each failing line in the sorted list, check if the next or previous number is also in the list.\n\nBut wait, I'm not sure about this approach because a single file could have multiple mutants on different lines. So for each failed mutant, I need to look at its neighboring lines (within the same file) and see if any of them are also failing.\n\nFor example:\n\n- If file A has failed mutants on lines 10 and 11, then both have adjacent faults.\n- But if they're on lines 10 and 12, no adjacency.\n\nI think that's correct.\n\nSo putting it all together:\n\n- Create a dictionary where each key is the file path (without line number) and the value is a set of line numbers where mutants failed.\n- For each mutant in this dictionary:\n   - Sort the line numbers.\n   - Iterate through each line number, check if the next line exists in the same file's list. If so, mark both as having adjacent faults.\n\nBut wait, how do I map back to the original mutant IDs? Because each line can have multiple mutants (like 1230-6 and 1230-7 might be two different mutants on the same line). So for each line number in a file that failed, all mutants on that line would potentially have adjacent faults if another line nearby also failed.\n\nAlternatively, perhaps any mutant that shares a failing status with a mutant on an adjacent line is considered to have an adjacent fault. But I'm not sure how granular this needs to be.\n\nWait, the problem statement says \"is_fault_adjacent\" for each mutant. So for each individual mutant, we need to determine if it has at least one neighboring mutant that also failed.\n\nSo for a given mutant ID:\n\n- Extract its file and line number.\n- Check in the same file if there's any other failing mutant on line (current_line ± 1).\n- If yes, then this mutant has an adjacent fault.\n\nYes, that makes sense. So each mutant is checked individually against its immediate neighbors in the same file.\n\nSo to implement this:\n\n1. **Parse all mutants**: For each mutant ID and status, extract file and line number.\n2. **Store failing mutants**: Create a dictionary where key is (file, line) and value is whether it's failing.\n3. **For each mutant**: If it's failing, check if the same file has any failing mutants on adjacent lines.\n\nWait, no. Because for each failing mutant, we need to see if any of its immediate neighbors are also failing in the same file.\n\nSo for example:\n\n- Mutant A is at file X, line 10.\n- Mutant B is at file X, line 11.\n- Both failed.\n\nThen both A and B have adjacent faults because they're on neighboring lines.\n\nSimilarly, if a mutant is at line 15 and the next line (16) has another failing mutant, then this one would be marked as having an adjacent fault.\n\nSo in code:\n\nFor each mutant in the list:\n   If it's failing:\n      Get its file and line number.\n      Check in the same file if there are any other mutants on line-1 or line+1 that failed.\n      If yes, set is_fault_adjacent to True for this mutant.\n\nBut how do I efficiently check this? Since the input is a JSON object with all mutants, perhaps we can create a helper structure:\n\n- Create a dictionary where the key is (file, line) and value is whether the mutant on that file and line failed.\n   For example: failed_mutants = {(file1, line1): True, (file2, line2): True, ...}\n\nThen for each mutant in the input:\n   If the mutant's status is 'failing':\n      Get its file and line.\n      Check if (file, line-1) exists in failed_mutants. If yes, mark as True.\n      Also check if (file, line+1) exists in failed_mutants. If yes, mark as True.\n\nSo combining both previous and next lines.\n\nBut wait, each mutant ID is unique, but multiple mutants can be on the same line (like 1230-6 and 1230-7). So for a given file and line number, there might be multiple mutants. So when checking adjacency, any failing mutant on an adjacent line counts.\n\nSo even if one of the lines has a failing mutant, it's enough to mark the current as having an adjacent fault.\n\nYes.\n\nNow, considering that in the input JSON, all mutants are listed with their status. We can process each one:\n\n- For each mutant ID and status:\n   If status is 'failing':\n      Extract file and line.\n      Check if any of (file, line-1) or (file, line+1) have a failing mutant.\n\nSo the steps in code would be:\n\n1. Create a set of all failing mutants' (file, line) pairs.\n2. For each mutant ID:\n   If it's failing:\n      Extract file and current_line.\n      Check if (file, current_line-1) is in the failing set or (file, current_line+1) is in the failing set.\n      Set is_fault_adjacent accordingly.\n\nBut wait, how to extract the file and line from the mutant ID? The format is \"src-main-java-org-joda-time-format-DateTimeFormatterBuilder-1230-6\". So the part before the last hyphen is the file, and the part after is the line number within that file.\n\nSo for example:\n\nmutant_id = \"src-main-java-org-joda-time-format-DateTimeFormatterBuilder-1230-6\"\nfile_part = \"src/main/java/org/joda/time/format/DateTimeFormatterBuilder\" (without the last hyphen)\nline_number = 6\n\nWait, no. The mutant ID is actually in the format where each segment is separated by '-', so splitting on '-' gives:\n\n[\"src\", \"main\", \"java\", \"org\", \"joda\", \"time\", \"format\", \"DateTimeFormatterBuilder\", \"1230\", \"6\"]\n\nSo the file_part is everything up to \"DateTimeFormatterBuilder\", and the line number is 6.\n\nWait, no. The file path is built from all parts except the last two elements. Because the last two are the class name (DateTimeFormatterBuilder) and the line number.\n\nWait, perhaps:\n\nfile_path = 'src/main/java/org/joda/time/format/' + className\nwhere className is the part before the last hyphen, and the last part is the line number.\n\nSo for example:\n\nmutant_id.split('-') gives: ['src', 'main', 'java', 'org', 'joda', 'time', 'format', 'DateTimeFormatterBuilder', '1230', '6']\n\nThe file path would be 'src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java' ?\n\nWait, no. The line number comes after the class name in the mutant ID.\n\nSo for each mutant ID:\n\nparts = mutant_id.split('-')\nfile_path = '-'.join(parts[:-2])  # everything except last two parts\nclass_name = parts[-2]\nline_number = int(parts[-1])\n\nBut wait, that would make file_path include up to 'format', and then class_name is separate. Hmm.\n\nActually, the format seems to be:\n\n<src>/<main>/.../<package>/<ClassName>-<line>\n\nSo for example, the mutant ID \"src-main-java-org-joda-time-format-DateTimeFormatterBuilder-1230-6\" corresponds to file \"src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java\", line 6.\n\nWait, no. Because in the split, parts are:\n\n['src', 'main', 'java', 'org', 'joda', 'time', 'format', 'DateTimeFormatterBuilder', '1230', '6']\n\nSo the class name is 'DateTimeFormatterBuilder' and the line number is 6.\n\nBut how to reconstruct the file path? It's \"src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java\", right?\n\nWait, no. Because in Java source files, the package structure mirrors the directory structure. So the class DateTimeFormatterBuilder is in the package org.joda.time.format, so the file would be at:\n\nsrc/main/java/org/joda/time/format/DateTimeFormatterBuilder.java\n\nSo the file path can be constructed by joining all parts except the last two (class name and line number) with '/' separators.\n\nWait, but the mutant ID uses '-' as separators. So perhaps I should split on '-', then take everything except the last two elements to form the package and class structure.\n\nAlternatively, maybe it's easier to consider that the file path is built from all parts up to and including the class name, then .java.\n\nBut perhaps I'm overcomplicating. For our purposes, the file identifier can be considered as the combination of the package and class name, but for adjacency checks, it's sufficient to group by the same class (same file) because mutants in different files won't have adjacent lines.\n\nSo perhaps:\n\nFor each mutant ID:\n   Split into parts.\n   The last two parts are class_name and line_number.\n   So the file key is everything before that.\n\nWait, but for grouping, it's better to consider that all mutants in the same file (same package and class) are grouped together. So for example, any mutant with 'DateTimeFormatterBuilder' as part of their ID belongs to the same file.\n\nSo perhaps:\n\nfile_id = '-'.join(parts[:-2]) + '/' + parts[-2] + '.java'\n\nWait, no. Let me think again.\n\nEach mutant ID is structured as:\n\n<src>/<main>/.../<package>/<ClassName>-<line>\n\nBut in reality, it's a single string with hyphens: \"src-main-java-org-joda-time-format-DateTimeFormatterBuilder-1230-6\"\n\nSo when split by '-', the parts are:\n\n['src', 'main', 'java', 'org', 'joda', 'time', 'format', 'DateTimeFormatterBuilder', '1230', '6']\n\nThe package is \"org.joda.time.format\", and the class name is DateTimeFormatterBuilder.\n\nSo the file path would be: src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java\n\nThus, for each mutant ID, the file can be determined by taking all parts except the last two (which are '1230' and '6'), then joining them with '/' and appending .java.\n\nWait, no. Because the parts before the class name are the package path.\n\nSo to construct the file path:\n\nfile_parts = parts[:-2]\npackage_dir = '/'.join(file_parts)\nclass_name = parts[-2]\nline_number = int(parts[-1])\nfile_path = f\"{package_dir}/{class_name}.java\"\n\nYes, that makes sense.\n\nFor example:\n\nparts = ['src', 'main', 'java', 'org', 'joda', 'time', 'format', 'DateTimeFormatterBuilder', '1230', '6']\nfile_parts = parts[:-2] => ['src', 'main', 'java', 'org', 'joda', 'time', 'format']\npackage_dir = '/'.join(file_parts) => \"src/main/java/org/joda/time/format\"\nclass_name = 'DateTimeFormatterBuilder'\nline_number = 6\nfile_path = \"src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java\"\n\nYes, that's correct.\n\nSo the file path is unique per class. So mutants in different classes are in different files and thus can't have adjacent lines.\n\nTherefore, for our purpose:\n\n- For each mutant ID, extract the file path as described.\n- Then, within each file, check if any failing mutant has a neighbor on the same file that's also failing.\n\nBut since we're processing each mutant individually, perhaps it's more efficient to group all mutants by their file, then for each file, process its failed mutants and mark those with adjacent faults.\n\nAlternatively, for each failing mutant, just check within the same file whether any other failing mutant is on line-1 or line+1.\n\nSo in code:\n\n1. Create a dictionary where keys are (file_path, line_number) and value is True if the mutant is failing.\n2. For each mutant ID in the input:\n   Split into parts to get file_parts, class_name, and line_number.\n   Construct file_path as above.\n3. Check if the current mutant is failing (from the input JSON).\n4. If it's failing:\n   Check if any of the lines line_number-1 or line_number+1 exist in the same file's failed mutants.\n5. If either exists, mark is_fault_adjacent as True.\n\nWait, but how do I get all failed mutants? Because for each mutant ID, I can know whether it's failing or not.\n\nSo perhaps:\n\nCreate a set of tuples (file_path, line_number) where the mutant is failing.\n\nThen, for each mutant in the input:\n\nIf status is 'failing':\n\n   file_parts = parts[:-2]\n   package_dir = '/'.join(file_parts)\n   class_name = parts[-2]\n   line_num = int(parts[-1])\n   current_file = f\"{package_dir}/{class_name}.java\"\n\n   adjacent_lines = [line_num - 1, line_num + 1]\n\n   for adj_line in adjacent_lines:\n       if (current_file, adj_line) in failed_mutant_set:\n           is_fault_adjacent = True\n           break\n\nElse:\n\n   is_fault_adjacent = False\n\nSo yes.\n\nNow, let's think about the example given in the problem statement. The input was a JSON object with some mutants failing, but I don't have the exact details. But assuming that for each failing mutant, we need to check its adjacent lines.\n\nAnother consideration: line numbers can be 1 or higher. So if a mutant is on line 1, it only has line 2 as a possible neighbor.\n\nSimilarly, for the last line of a file, there's no next line.\n\nBut in our code, checking (file, line-1) and (file, line+1) will handle that naturally because line-1 would be 0 or negative for line=1, which won't exist in the failed set.\n\nSo in code:\n\nfor each mutant_id in mutants:\n   status = mutants_info[mutant_id]\n   if status == 'failing':\n      parts = mutant_id.split('-')\n      file_parts = parts[:-2]\n      package_dir = '/'.join(file_parts)\n      class_name = parts[-2]\n      line_num = int(parts[-1])\n      current_file = f\"{package_dir}/{class_name}.java\"\n\n      has_adjacent = False\n      for adj_line in [line_num - 1, line_num + 1]:\n          if (current_file, adj_line) in failed_mutant_set:\n              has_adjacent = True\n              break\n\n      result[mutant_id] = {'is_fault_adjacent': has_adjacent}\n   else:\n      result[mutant_id] = {'is_fault_adjacent': False}\n\nWait, but the output needs to be a JSON object with each mutant's ID and their is_fault_adjacent status.\n\nSo that makes sense.\n\nNow, putting it all together:\n\n1. Parse the input JSON into a dictionary where keys are mutant IDs and values are 'passing' or 'failing'.\n2. Create a set of tuples (file_path, line_number) for all failing mutants.\n3. For each mutant in the input:\n   a. Split the ID to get file_parts, class_name, line_num.\n   b. If status is 'failing':\n      i. Check if any adjacent lines are also failing in the same file.\n      ii. Set is_fault_adjacent accordingly.\n   c. Else:\n      i. Set is_fault_adjacent as False.\n\nSo that's the plan.\n\nNow, let's think about edge cases:\n\n- A mutant on line 1: only checks line 2.\n- A mutant on the last line of a file: only checks line -1 (which won't exist).\n- Multiple mutants on the same line in different positions (like 1230-6 and 1230-7): does it matter",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 4096,
+    "total_tokens": 8192,
+    "prompt_eval_time_seconds": 1.0455,
+    "eval_time_seconds": 58.456,
+    "total_time_seconds": 59.5596,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 68.74
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_20_buggy/src/main/java/org/joda/time/format/DateTimeFormatterBuilder/1230/6/DateTimeFormatterBuilder.java",
+  "analysis_timestamp": "2026-02-12T08:40:30.736572",
+  "test_changes": {
+    "org.joda.time.format.TestDateTimeFormatterBuilder#test_printParseZoneDawsonCreek": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2005": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListDOM": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestBuilder#testReverseTransitions": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInstant_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testSetInto_Object_Chronology2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Properties": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testLocalDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonth_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriodType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISOPeriodFormat": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testWOYY": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListMinute": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_weekDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormat": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testLocalTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestPeriodFormatParsing": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestISOChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_dateElementParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_ordinalDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testLocalDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testDOW": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_tTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testDOY": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestPeriodFormatterBuilder": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestEthiopicChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicWeekDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormat": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_timeParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_dateParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISOPeriodFormatParsing": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicOrdinalDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestIllegalFieldValueException#testZoneTransition": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestTextFields": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_localDateParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Match": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestPeriodFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonth_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testGetPartialValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Properties": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicWeekDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDuration_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Properties": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListSecond": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_hourMinuteSecondMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicTTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestBuilder#testSerialization": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Updates": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicOrdinalDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_date": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListYOYY": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_dateOptionalTimeParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testDateMidnight": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Properties": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestBuilder#testForwardTransitions": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testSingleton": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestIslamicChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testGetChronology_Object_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testMonthDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_time": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_dateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicWeekDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2006": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testWOW": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testMonthDay_leapDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Adds": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testSetInto_Object": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDuration_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testDOM": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testSecond": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_isoChrononolgy_Chicago": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListDOW": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListBasic": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_hourMinute": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_ordinalDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_lenientChrononolgy_Chicago": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_hourMinuteSecond": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_weekDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestJulianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestIllegalFieldValueException#testGJCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestCopticChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testGetInstantMillis_Object_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testNullDT": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInstant_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2003": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestCalendarConverter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPeriod_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testGetChronology_Object_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Properties": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicOrdinalDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_weekDate": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#test_Amman_2004": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGregorianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_timeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.tz.TestCompiler#testCompile": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Properties": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeUtils": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatterBuilder": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicTTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testSupportedType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testGetPeriodType_Object": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testSetInto_Object_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_localDateOptionalTimeParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListWOW": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatStyle": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testMinute": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListDOY": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_hourMinuteSecondFraction": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testHour": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testGetDurationMillis_Object": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_ordinalDateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Updates": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestNullConverter#testIsReadableInterval_Object_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_basicTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_dateTimeParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_dateTimeNoMillis": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_tTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testMutableDateTime": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testListHour": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutablePeriod_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testYear": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestLenientChronology#test_strictChrononolgy_Chicago": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_timeElementParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestStringConvert#testYearMonth": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestISODateTimeFormatParsing#test_localTimeParser": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 3,
+  "time_cost": {
+    "total_time_seconds": 59.5871,
+    "preprocessing_time_seconds": 0.0023,
+    "llm_query_time_seconds": 59.5848,
+    "start_timestamp": 1770914371.1494837,
+    "end_timestamp": 1770914430.73657
+  }
+}

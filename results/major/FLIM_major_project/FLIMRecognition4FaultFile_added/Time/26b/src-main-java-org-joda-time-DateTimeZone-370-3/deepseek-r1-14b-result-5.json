@@ -1,0 +1,58 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-370-3",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, I need to figure out whether the mutant code change in the DateTimeZone class is adjacent to a fault. The mutant changed lines 369-372:\n\nOriginal:\nif ((instantLocal ^ instantUTC) < 0 && (instantLocal ^ offset) < 0) {\n    throw new ArithmeticException(\"Subtracting time zone offset caused overflow\");\n}\nreturn instantUTC;\n\nMutant:\nlong instantUTC = instantLocal - offset;\nif ((instantLocal ^ instantUTC) < 1 && (instantLocal ^ offset) < 0) {\n    throw new ArithmeticException(\"Subtracting time zone offset caused overflow\");\n}\nreturn instantUTC;\n\nLooking at the code, the only change is in the condition of the if statement. The original checks if both XOR results are less than 0, while the mutant changes it to check if (instantLocal ^ instantUTC) < 1 and (instantLocal ^ offset) < 0.\n\nI need to see if this change could affect the behavior related to any test failures or passes.\n\nThe failing tests after mutation include TestBuddhistChronology#testDurationFields, which started failing. Other tests like TestMonthDay_Properties passed because the test was fixed by the mutation.\n\nThe main issue seems to be in how overflow is detected. The XOR operation is used to check for negative results when converting between local and UTC instants. Changing the condition from <0 to <1 might alter whether an exception is thrown, which could affect tests that rely on correct overflow handling.\n\nSince the change affects arithmetic checks near line 370-372, it's likely adjacent to any potential faults in those lines. Therefore, the mutant_id is \"src-main-java-org-joda-time-DateTimeZone-370-3\" and is_fault_adjacent should be true.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-370-3\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 418,
+    "total_tokens": 4514,
+    "prompt_eval_time_seconds": 1.0504,
+    "eval_time_seconds": 6.0295,
+    "total_time_seconds": 7.1386,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 58.39
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/370/3/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T17:39:34.534160",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology#testDurationFields": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 5,
+  "time_cost": {
+    "total_time_seconds": 7.1594,
+    "preprocessing_time_seconds": 0.0011,
+    "llm_query_time_seconds": 7.1583,
+    "start_timestamp": 1770946767.3747892,
+    "end_timestamp": 1770946774.5341582
+  }
+}

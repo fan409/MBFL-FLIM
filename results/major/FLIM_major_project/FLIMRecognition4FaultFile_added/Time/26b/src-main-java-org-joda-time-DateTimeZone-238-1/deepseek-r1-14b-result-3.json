@@ -1,0 +1,55 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-238-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out why the mutant code changes led to some tests passing and others still failing. Let me start by understanding what the problem is.\n\nFrom the given information, there's a part where lines 235-241 in DateTimeZone.java are being modified. The comments show that certain map entries are added or have semicolons removed. Specifically:\n\n- Line 238 was originally `map.put ( \"MET\", \"Asia/Tehran\" );` but now it's just `map.put ( \"MET\", \"Asia/Tehran\" );` with a semicolon, which seems odd because the original probably had a semicolon.\n- Similarly, lines 239-241 add more map.put statements.\n\nThe failing tests include several in TestDateTimeZoneCutover and one in TestMonthDay_Properties. The status change shows that only testPropertyGetMonthOfYear is now passing after mutation, while others remain failing.\n\nSo, I think the key here is to understand what these map entries represent. They seem to be timezone identifiers mapping to specific regions. For example, \"CAT\" maps to Africa/Harare, and so on. The MET entry maps to Asia/Tehran. \n\nThe problem arises when a mutation changes this setup. If any of these mappings are incorrect or missing, it could cause tests that rely on correct timezone handling to fail.\n\nLooking at the failing tests:\n\n1. **TestMonthDay_Properties#testPropertyGetMonthOfYear**: This test is now passing after the mutation. The error was an unexpected month name in a different language (九月 vs September). Maybe the mutation corrected a localization issue, but I'm not sure how this relates to timezone mappings.\n\n2. **Multiple TestDateTimeZoneCutover tests are still failing**. These tests probably check if the system correctly handles Daylight Saving Time transitions or timezone offsets for specific regions. The mutations in the map entries might have introduced incorrect values, causing these tests to fail because the expected timezones aren't being used as intended.\n\nSo why did one test pass and others not? Maybe the mutation fixed a bug in how month names were handled elsewhere, but the timezone mappings are still wrong, leading to other tests failing.\n\nLooking deeper, perhaps the change on line 238 (the semicolon) doesn't affect functionality because it's just syntax. But adding new entries like \"NET\", \"PLT\", and \"IST\" might be introducing unexpected behavior if these timezones weren't properly handled before. For example, \"Asia/Calcutta\" is the correct region for IST (Indian Standard Time), but maybe there was a bug elsewhere that caused tests to fail when this mapping was added.\n\nAlternatively, perhaps the tests in TestDateTimeZoneCutover are expecting certain timezone offsets which aren't being met because of incorrect mappings. For instance, if \"MET\" should map to something else, it would cause date/time calculations to be off during DST transitions.\n\nThe is_fault_adjacent field refers to whether this mutant is adjacent to a fault (a failing test). Since the mutant changed multiple lines related to timezone mappings and only one test passed while others failed, it's likely that these mutations are causing issues in the code. Therefore, the mutant is not just fixing a single issue but also introducing new ones.\n\nSo, putting it all together, the mutant changes are affecting several tests because they alter how timezones are mapped, which could have cascading effects on date/time calculations across different regions and during DST periods.\n</think>\n\nThe mutant modifications to the DateTimeZone.java file altered several timezone mappings. While one test passed due to a fixed localization issue, other tests failed as incorrect or new mappings caused unexpected behavior in handling Daylight Saving Time transitions.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-238-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 808,
+    "total_tokens": 4904,
+    "prompt_eval_time_seconds": 1.043,
+    "eval_time_seconds": 11.5832,
+    "total_time_seconds": 12.6804,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 63.62
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/238/1/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T15:19:23.115353",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    }
+  },
+  "attempt_number": 3,
+  "time_cost": {
+    "total_time_seconds": 12.7024,
+    "preprocessing_time_seconds": 0.0011,
+    "llm_query_time_seconds": 12.7014,
+    "start_timestamp": 1770938350.4129171,
+    "end_timestamp": 1770938363.1153505
+  }
+}

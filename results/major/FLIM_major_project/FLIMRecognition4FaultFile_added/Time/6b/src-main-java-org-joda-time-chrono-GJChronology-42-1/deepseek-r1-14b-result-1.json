@@ -1,0 +1,187 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-chrono-GJChronology-42-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, I'm trying to figure out why the mutant with ID `src-main-java-org-joda-time-chrono-GJChronology-42-1` is causing so many test failures. Let me start by understanding what this mutant does.\n\nFrom the provided information, it looks like there was a change in how the `minDaysInFirstWeek` parameter is being handled when creating a new instance of GJChronology. The original code at line 42 had:\n\n```java\nreturn new GregorianChronology(zone, minDaysInFirstWeek);\n```\n\nAnd the mutant changed it to:\n\n```java\nreturn new GregorianChronology(zone, 7 - minDaysInFirstWeek);\n```\n\nSo, instead of using `minDaysInFirstWeek` directly, it's subtracting it from 7. That seems like a significant change because `minDaysInFirstWeek` is supposed to represent the minimum number of days in the first week, which typically ranges from 1 to 7.\n\nI should think about what this does. If someone passes 1 as `minDaysInFirstWeek`, which would mean the first week can have at least 1 day, subtracting it from 7 gives 6. That doesn't make sense because `GregorianChronology` expects a value between 1 and 7 for the minimum days in the first week.\n\nSo, this mutant is incorrectly inverting the value of `minDaysInFirstWeek`. This would cause various parts of the code that rely on the correct minimum days to misbehave. For example, when setting or getting dates around the boundary weeks, calculations might be off.\n\nLooking at the failing tests, many are related to different chronology factories and conversions. Tests like `TestDateTimeUtils#testGetInstantChronology_RI` probably expect a valid chronology instance but receive one with an invalid configuration due to this mutant. Similarly, tests that construct dates or intervals using these chronologies would fail because their underlying assumptions about the week structure are incorrect.\n\nAdditionally, some tests might have started passing only if the mutant fixed them, which is noted in the status changes as \"failing->passing\". But most of the status changes show tests going from passing to failing, indicating that the mutation broke existing functionality.\n\nIn summary, the mutant incorrectly modifies `minDaysInFirstWeek` by subtracting it from 7. This leads to invalid values being used in GregorianChronology creation, causing numerous test failures across various modules that depend on correct week calculations.\n</think>\n\nThe issue arises because the mutant inverts the value of `minDaysInFirstWeek`, leading to incorrect week configurations and multiple test failures.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-GJChronology-42-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 589,
+    "total_tokens": 4685,
+    "prompt_eval_time_seconds": 1.0473,
+    "eval_time_seconds": 8.5037,
+    "total_time_seconds": 9.6123,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 61.15
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_6_buggy/src/main/java/org/joda/time/chrono/GJChronology/42/1/GJChronology.java",
+  "analysis_timestamp": "2026-02-12T08:09:42.883857",
+  "test_changes": {
+    "org.joda.time.chrono.TestGJDate#test_cutoverPreZero": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.chrono.TestGJDate#test_plusYears_positiveToZero_crossCutover": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.chrono.TestGJDate#test_plusYears_positiveToNegative_crossCutover": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.chrono.TestGJDate#test_plusWeekyears_positiveToZero_crossCutover": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.chrono.TestGJDate#test_plusWeekyears_positiveToNegative_crossCutover": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeUtils#testGetInstantChronology_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter#testSetIntoInterval_Object_Chronology7": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestTimeOfDay_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestGJChronology#testFactory_Zone_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestAbstractPartial#testGetFieldType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoInterval_Object3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDate_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Constructors#testConstructor_Object_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTime_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Match": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Constructors": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableInterval_Constructors#testConstructor_Object_Chronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestAbstractPartial#testGetFieldTypes": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestPartial_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.chrono.TestBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testSingleton": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeUtils#testGetChronology_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestAbstractPartial#testGetPropertyEquals": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeUtils#testGetIntervalChronology_RI_RI": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testGetPartialValues": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestPeriodFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonth_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateMidnight_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testGetChronology_Object_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMillis_RI1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMutableDateTime_Sets#testSetMillis_RI2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestYearMonthDay_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestCalendarConverter#testGetChronology_Object_nullChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoInterval_Object2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testSupportedType": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalDateTime_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestCalendarConverter#testGetChronology_Object_Zone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestMonthDay_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoInterval_Object4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadablePartialConverter#testGetChronology_Object_Chronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.format.TestDateTimeFormatter": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeUtils#testGetIntervalChronology_RInterval": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedLocalDateBuddhist": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestStringConverter#testSetIntoInterval_Object_Chronology8": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestChronology#testToString": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestLocalTime_Basics": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestAbstractPartial#testGetField": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.convert.TestReadableIntervalConverter#testSetIntoInterval_Object1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestInterval_Basics#testWithChronology1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 1,
+  "time_cost": {
+    "total_time_seconds": 9.6326,
+    "preprocessing_time_seconds": 0.0011,
+    "llm_query_time_seconds": 9.6314,
+    "start_timestamp": 1770912573.251304,
+    "end_timestamp": 1770912582.8838556
+  }
+}

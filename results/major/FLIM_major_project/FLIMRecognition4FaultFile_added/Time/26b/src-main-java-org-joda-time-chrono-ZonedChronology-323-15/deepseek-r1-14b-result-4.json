@@ -1,0 +1,160 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-chrono-ZonedChronology-323-15",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, so I'm trying to figure out whether the mutant with ID 323 is causing any issues. Let's start by looking at the code that was changed.\n\nThe original line in ZonedChronology.java was:\nif ((int) (maxMillis + offset) > Integer.MAX_VALUE || (int) (minMillis + offset) < Integer.MIN_VALUE) {\n    throw new ArithmeticException(\"Adding time zone offset caused overflow\");\n}\nreturn offset;\n}\n\nAnd the mutant changed it to:\nif ((int) (maxMillis + offset) > Integer.MAX_VALUE || (int) (minMillis + offset) < Integer.MIN_VALUE) {\n    throw new ArithmeticException(\"Adding time zone offset caused overflow\"); }\n}\nreturn offset; }\n\nWait, looking again, the user provided the diff as:\n\n- 324 |                 throw new ArithmeticException ( \"Adding time zone offset caused overflow\" ); }\n- 325 |             return offset; } }\n\nAnd the mutant changed line 324 to:\nthrow new ArithmeticException(\"...\"); }\n\nBut I'm not sure if that's the exact change. Alternatively, perhaps it's a formatting issue or an extra bracket.\n\nWait, in the user's message, they provided:\n\nMutant Failing Tests Information shows several tests are now failing because of this mutation. For example, TestMonthDay_Properties#testPropertyGetMonthOfYear was fixed (was failing, now passing), but other tests like those in DateTimeZoneCutover started failing.\n\nThe key point is that the mutant changed some condition related to overflow when adding the time zone offset.\n\nIn the original code, it's checking if maxMillis + offset exceeds Integer.MAX_VALUE or minMillis + offset goes below Integer.MIN_VALUE. If so, throw an exception.\n\nBut perhaps the mutant altered this condition incorrectly, leading to either not throwing exceptions when needed or throwing them unnecessarily.\n\nLooking at the tests that failed: many are related to DateTimeZoneCutover and involve rounding operations like roundCeiling or roundFloor in different time zones during DST changes. These likely involve calculations where adding the offset could cause overflows if not handled correctly.\n\nSo, if the mutant changed how we check for overflow, it might have caused these tests to fail because the rounding logic now doesn't handle edge cases properly, leading to incorrect DateTime values or exceptions being thrown when they shouldn't be, or vice versa.\n\nTherefore, the mutant is likely adjacent to a fault in handling time zone offsets and could be causing issues in several test cases.\n</think>\n\nThe mutant modifies the overflow check when adding the time zone offset. This can affect how edge cases are handled during date-time calculations, leading to failed tests where rounding operations expect specific behaviors.\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-chrono-ZonedChronology-323-15\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 595,
+    "total_tokens": 4691,
+    "prompt_eval_time_seconds": 1.0468,
+    "eval_time_seconds": 8.6107,
+    "total_time_seconds": 9.7199,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 61.11
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/chrono/ZonedChronology/323/15/ZonedChronology.java",
+  "analysis_timestamp": "2026-02-12T21:32:32.382020",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minuteOfHour_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hour_NewYork_Spring_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testBasicComps3": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZone": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_secondOfMinute_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_secondOfMinute_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_hour_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedISOChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGregorianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedYearMonthDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization1": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hourOfDay_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minuteOfHour_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedJulianChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_minuteOfHour_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testBasicComps5": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hourOfDay_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_secondOfMinute_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedBuddhistChronology": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedDateTimeZoneUTC": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_hour_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minute_NewYork_Spring_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedGJChronologyChangedInternals": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_hourOfDay_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_hour_NewYork_Spring_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_secondOfMinute_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeComparator#testBasicComps4": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_minuteOfHour_NewYork_Autumn_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_hourOfDay_NewYork_Autumn_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestSerialization#testSerializedTimeOfDay": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundCeiling_minute_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZone#testSerialization2": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_minute_NewYork_Spring_preCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#test_DateTime_roundFloor_minute_NewYork_Spring_postCutover": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 4,
+  "time_cost": {
+    "total_time_seconds": 9.7371,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 9.7359,
+    "start_timestamp": 1770960742.6449256,
+    "end_timestamp": 1770960752.3820179
+  }
+}

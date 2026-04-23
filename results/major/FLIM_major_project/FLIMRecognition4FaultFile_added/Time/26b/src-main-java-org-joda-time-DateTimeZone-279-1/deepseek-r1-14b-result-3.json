@@ -1,0 +1,58 @@
+{
+  "mutant_id": "src-main-java-org-joda-time-DateTimeZone-279-1",
+  "is_fault_adjacent": true,
+  "is_flim": false,
+  "raw_response": "<think>\nOkay, I'm trying to figure out whether the mutant code change caused any issues with being adjacent to a fault. So, let's break this down step by step.\n\nFirst, looking at the mutant code changes provided:\n\nLines 276-282 were modified. The original line 279 was:\nint seconds = offset / DateTimeConstants.MILLIS_PER_SECOND;\n\nAnd it was changed to:\nint seconds = offset % DateTimeConstants.MILLIS_PER_SECOND;\n\nWait, that doesn't seem right. Using modulo here would give the remainder when offset is divided by MILLIS_PER_SECOND, which is 1000 milliseconds. But in the context of formatting time zones, I think we want the number of whole seconds, not the remainder.\n\nLooking at the surrounding code:\n\nThe code was trying to format the offset into hours, minutes, and seconds. So initially, it subtracts minutes and then calculates the remaining offset as seconds. The original line calculated seconds correctly by division. But after mutation, using modulo would give a value between 0 and 999, which isn't what we want for the seconds part in time zone offsets.\n\nSo, this change likely introduced an error because it's now capturing the remainder instead of the actual number of seconds. This could cause incorrect formatting of the offset string, leading to test failures.\n\nNow, looking at the failing tests information:\n\nThe only test that changed status is TestDateTimeZone#testForID_String, which started failing after the mutation. Other tests remained failing or unchanged. The testPropertyGetMonthOfYear in TestMonthDay_Properties was fixed by the mutation, but that's probably unrelated since it's about month names.\n\nSo, the key issue here is line 279 where seconds were miscalculated using modulo instead of division. This incorrect calculation affects how offsets are formatted, causing some tests to fail because the time zone strings aren't correct anymore.\n\nTherefore, the mutant change introduced a bug in formatting the offset, making it faulty and adjacent to the intended functionality.\n</think>\n\n```json\n{\n    \"mutant_id\": \"src-main-java-org-joda-time-DateTimeZone-279-1\",\n    \"is_fault_adjacent\": true\n}\n```",
+  "token_statistics": {
+    "input_tokens": 4096,
+    "output_tokens": 457,
+    "total_tokens": 4553,
+    "prompt_eval_time_seconds": 1.0377,
+    "eval_time_seconds": 6.575,
+    "total_time_seconds": 7.67,
+    "token_source": "api",
+    "token_output_speed_tokens_per_second": 59.43
+  },
+  "mutant_path": "/home/rs/WorkEx/Projects/SoftwareTesting/Mutation/TraditionalMutation/major/MutantRepo/Defects4J/D4JCleanCD4J/Mutant4FaultyFile/Time/time_26_buggy/src/main/java/org/joda/time/DateTimeZone/279/1/DateTimeZone.java",
+  "analysis_timestamp": "2026-02-12T16:05:32.697791",
+  "test_changes": {
+    "org.joda.time.TestMonthDay_Properties#testPropertyGetMonthOfYear": {
+      "status_change": "failing->passing (test was fixed by mutation)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_usCentral": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testBug2182444_ausNSW": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_Paris_summer": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithSecondOfMinuteInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithHourOfDayInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange_mockZone": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMinuteOfHourInDstChange": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZoneCutover#testWithMillisOfSecondInDstChange_NewYork_winter": {
+      "status_change": "failing->failing (test behavior unchanged)"
+    },
+    "org.joda.time.TestDateTimeZone#testForID_String": {
+      "status_change": "passing->failing (test was broken by mutation)"
+    }
+  },
+  "attempt_number": 3,
+  "time_cost": {
+    "total_time_seconds": 7.6906,
+    "preprocessing_time_seconds": 0.0012,
+    "llm_query_time_seconds": 7.6894,
+    "start_timestamp": 1770941125.007202,
+    "end_timestamp": 1770941132.6977894
+  }
+}
