@@ -4,7 +4,7 @@
 
 This repository contains the implementation and experimental results for Mutation-Based Fault Localization (MBFL), with a focus on analyzing Fault Localization Interference Mutants (FLIMs).
 
-FLIMs are a class of mutants that may negatively affect fault localization effectiveness. This project includes scripts for FLIM identification, fault localization evaluation, and visualization under different mutation strategies (e.g., Major and μBERT).
+FLIMs are a class of mutants that may negatively affect fault localization effectiveness. This project includes scripts for FLIM identification, fault localization evaluation under different mutation strategies (e.g., Major and μBERT).
 
 ---
 
